@@ -1,5 +1,35 @@
 [
   {
+    "text": "Listo, entonces ahora crea una rama de la fase 8. Y cuando la crees, te diré qué haremos en la fase 8.",
+    "date": "2026-03-02",
+    "time": "04:53 PM"
+  },
+  {
+    "text": "Agrega estas reglas al System.Prom de Yama 3.",
+    "date": "2026-03-02",
+    "time": "04:51 PM"
+  },
+  {
+    "text": "- Listo, entonces ármame la lista de esas nuevas reglas.\n- Solamente quiero la lista de esas reglas para que sea claro y yo lo coloque en el modelo.",
+    "date": "2026-03-02",
+    "time": "04:49 PM"
+  },
+  {
+    "text": "¿Qué otras reglas gramaticales crees que nos faltan con las reglas que ya tenemos? \n¿Algo más que se debería añadir a las reglas gramaticales que de pronto no he tenido presente y que deberían colocarse en las reglas?",
+    "date": "2026-03-02",
+    "time": "04:48 PM"
+  },
+  {
+    "text": "Listo, hay otra regla que me gustaría añadir, no sé cómo sea esa regla, que es lo que he identificado conforme estoy utilizando el modelo, y es que no interpreta bien los signos de exclamación. No sé si tenga que ver con cómo lo exprese hablando o cómo debe ser, porque, por ejemplo, si digo \"te amo\" o una palabra como \"gracias\", que no quiero que siempre en la palabra \"gracias\" o \"te amo\" haya un signo de exclamación, solamente te estoy dando un ejemplo de lo que pasa, pues no lo coloca. Creo que es chévere que haya esa interacción con el tema de exclamaciones dentro del texto.\n\n¿Qué regla podríamos ahí colocar para que se ejecute de manera moderada, solamente cuando el modelo lo interprete como necesario? No es que siempre se coloque, pero sí sería chévere que se pueda ver algo así, ¿no? \n\nY también, dentro de eso, otras cosas que he visto es que, por ejemplo, no coloca cosas como en paréntesis, como que no las coloca. También sería adecuado colocar, no sé cómo se llama esa parte de la gramática, si me la puedes explicar y ver si podemos crear una regla específica para eso.",
+    "date": "2026-03-02",
+    "time": "04:46 PM"
+  },
+  {
+    "text": "Listo, nuestro siguiente plan es ajustar o colocar una regla en el System Prompt de Llama 3, porque no me está colocando signos de exclamación o no interpreta.",
+    "date": "2026-03-02",
+    "time": "04:44 PM"
+  },
+  {
     "text": "Listo, funciona perfecto. Ya veo que aparece en la barra de aplicaciones en segundo plano. Funciona el botón de configuración, funciona el botón de salir, funciona el botón de X de la ventana en donde se cierra, pero pues no se cierra la aplicación, sino que queda otra vez en segundo plano. Revisé que quede bien cuando reinicio el PC. Reinicié el PC y funciona perfecto.\n\nEntonces, podemos dar por cerrada la fase 7. Por favor, integra la fase 7 en la rama principal. Cuando te asegures de eso, entonces crea el commit con B7 y coloca el nombre correspondiente. Y cuando te asegures de eso, elimina la rama 7.",
     "date": "2026-03-02",
     "time": "04:43 PM"

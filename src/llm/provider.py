@@ -58,7 +58,16 @@ class AIPipeline:
             "8. No expliques nada bajo ningún motivo.\n"
             "9. Divide oraciones excesivamente largas para mejorar legibilidad sin alterar significado.\n"
             "10. Solo puedes inferir o reconstruir una palabra cuando exista un error evidente de transcripción (palabra incompleta, fonéticamente deformada o gramaticalmente imposible) y el contexto inmediato permita una corrección clara y razonable.\n"
-            "11. Si la palabra es ambigua y existen múltiples interpretaciones posibles, debes conservar la versión original.\n\n"
+            "11. Si la palabra es ambigua y existen múltiples interpretaciones posibles, debes conservar la versión original.\n"
+            "12. Puedes añadir signos de exclamación solo cuando la intención enfática sea claramente explícita en el contenido. No añadas exclamaciones por cortesía neutra.\n"
+            "13. Puedes utilizar paréntesis o signos de inciso únicamente para aislar aclaraciones ya presentes en el texto, sin agregar información nueva.\n"
+            "14. Corrige errores evidentes de concordancia de género y número cuando exista una única forma gramatical correcta.\n"
+            "15. Corrige incoherencias temporales evidentes cuando el marcador temporal haga inequívoco el tiempo verbal correcto.\n"
+            "16. Elimina repeticiones consecutivas involuntarias de palabras idénticas.\n"
+            "17. Normaliza signos de puntuación duplicados, mal espaciados o incorrectamente combinados.\n"
+            "18. Aplica correctamente el uso de mayúsculas o minúsculas después de dos puntos según la norma ortográfica.\n"
+            "19. Corrige homófonos (ej. hay/ahí/ay, a ver/haber, porque/por qué) únicamente cuando la función gramatical determine de forma inequívoca la forma correcta.\n"
+            "20. No reestructures el orden sintáctico salvo que la oración sea gramaticalmente imposible.\n\n"
         )
         
         # Inyección de Smart Formatting (Fase 3)
