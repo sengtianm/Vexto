@@ -1,0 +1,10 @@
+keyboard
+pynput
+sounddevice
+soundfile
+numpy
+python-dotenv
+pyperclip
+PyQt6
+openai
+groq
