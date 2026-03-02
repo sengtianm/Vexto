@@ -6,7 +6,9 @@ from dotenv import load_dotenv, set_key
 
 from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QVBoxLayout, 
                              QHBoxLayout, QLineEdit, QPushButton, QMessageBox,
-                             QScrollArea, QFrame, QTextEdit, QInputDialog, QComboBox, QCheckBox)
+                             QScrollArea, QFrame, QTextEdit, QInputDialog, QComboBox, QCheckBox,
+                             QSystemTrayIcon, QMenu, QStyle)
+from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtCore import Qt, pyqtSignal
 
 class HistoryManager:
@@ -75,6 +77,7 @@ class ControlPanelWindow(QWidget):
         self.add_history_signal.connect(self.on_new_dictation)
         
         self.init_ui()
+        self.setup_tray()
         
         # Iniciar backend automáticamente si hay clave
         if os.getenv("GROQ_API_KEY") and os.getenv("GROQ_API_KEY") != "tu_clave_aqui":
@@ -469,18 +472,59 @@ class ControlPanelWindow(QWidget):
         # Importante: inyectamos la llamada `add_history_signal.emit` a los servicios en background
         self.hotkey_manager = start_background_services(history_callback=self.add_history_signal.emit)
 
-    def closeEvent(self, event):
+    def setup_tray(self):
+        # Usamos el icono estándar de computadora para el System Tray
+        icon = self.style().standardIcon(QStyle.StandardPixmap.SP_ComputerIcon)
+        self.tray_icon = QSystemTrayIcon(icon, self)
+        
+        self.tray_icon.setToolTip("Vexto Dictation - En espera")
+        
+        # Crear menu nativo
+        tray_menu = QMenu(self)
+        
+        config_action = QAction("⚙️ Abrir Configuración", self)
+        config_action.triggered.connect(self.show_window)
+        tray_menu.addAction(config_action)
+        
+        quit_action = QAction("❌ Salir de Vexto", self)
+        quit_action.triggered.connect(self.quit_app)
+        tray_menu.addAction(quit_action)
+        
+        self.tray_icon.setContextMenu(tray_menu)
+        
+        # Conectar el doble clic izquierdo
+        self.tray_icon.activated.connect(self.tray_icon_activated)
+        self.tray_icon.show()
+        
+    def tray_icon_activated(self, reason):
+        if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
+            self.show_window()
+            
+    def show_window(self):
+        self.show()
+        self.activateWindow()
+        self.raise_()
+        
+    def quit_app(self):
         print("Cerrando Vexto por completo...")
         if self.hotkey_manager:
             self.hotkey_manager.stop()
         QApplication.quit()
-        event.accept()
+
+    def closeEvent(self, event):
+        # En lugar de cerrar la app o los servicios, solo ocultamos la ventana visual
+        self.hide()
+        event.ignore()
 
 def main():
     app = QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(True)
+    app.setQuitOnLastWindowClosed(False)
     window = ControlPanelWindow()
-    window.show()
+    
+    # Mostrar la ventana SOLO si el usuario no tiene la API Key
+    if not (os.getenv("GROQ_API_KEY") and os.getenv("GROQ_API_KEY") != "tu_clave_aqui"):
+        window.show()
+    
     sys.exit(app.exec())
 
 if __name__ == "__main__":
