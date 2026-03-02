@@ -1,5 +1,35 @@
 [
   {
+    "text": "Listo, creo que quedó perfecto. Vamos a ver si funciona bien. Eso lo iremos viendo con el tiempo, pero creo que de esta manera suplimos varias reglas del System.Prom y de los problemas que teníamos con el modelo Llama 3. Consideras que hay algo más que se va a implementar en el prompt de Yama 3 para evitar errores que pronto ya te había comentado. Con lo que tenemos, ya estamos listos para cerrar la fase 5.",
+    "date": "2026-03-02",
+    "time": "04:13 PM"
+  },
+  {
+    "text": "Te hago una pregunta a ti. ¿Crees que las reglas que tenemos actualmente en el System Prompt están bien? ¿Podemos mejorarlas? ¿Hay algo que deberíamos quitar? ¿Algo que deberíamos incluir? ¿Qué piensas? ¿Qué se puede mejorar de alguna manera, o es mejor que lo dejemos así como está?",
+    "date": "2026-03-02",
+    "time": "04:04 PM"
+  },
+  {
+    "text": "Pues, hasta el momento, funcionó. Hice el ejemplo del correo y funciona. Muéstrame aquí, transcríbeme, o dónde puedo ver exactamente el System.Prom que está diseñado en el proyecto. ¿Dónde lo puedo ver? ¿Dónde lo puedo revisar?",
+    "date": "2026-03-02",
+    "time": "04:02 PM"
+  },
+  {
+    "text": "Oye, por favor, escribe un correo electrónico para mi jefe, Juan, diciéndole que mañana voy a llegar tarde.",
+    "date": "2026-03-02",
+    "time": "04:02 PM"
+  },
+  {
+    "text": "La fase 4 es que Vexto se inicie solo de manera automática cuando prendo el computador. La fase 5 es que crees una rama llamada fase 5 y trabajemos sobre eso primero. \n\nPara implementar la fase 4, se necesitarían algunos cambios en la configuración del sistema. \n\nAquí te presento un plan detallado:\n- primero, debemos identificar el sistema operativo que estás utilizando, ya que los pasos pueden variar dependiendo del sistema.\n- luego, debemos configurar el sistema para que ejecute Vexto automáticamente al iniciar el computador. \n- esto puede involucrar la creación de un script de inicio o la modificación de la configuración del sistema para que incluya Vexto en la lista de programas que se ejecutan al arranque.\n\nEn cuanto a la fase 5, crearé una rama llamada fase 5 y trabajaremos en ella. \nPara empezar, necesito saber qué cambios o funcionalidades deseas agregar en esta fase. \nUna vez que tenga esta información, podré proporcionarte un plan detallado y explicarte los pasos necesarios para implementarlos.\n\nAntes de implementar cualquier cambio, te pediré tu autorización para asegurarme de que estás de acuerdo con el plan y los cambios propuestos. \n\n¿Quieres proceder con la fase 4 y la creación de la rama fase 5? ¿O prefieres esperar y proporcionarme más información sobre lo que deseas lograr en la fase 5?",
+    "date": "2026-03-02",
+    "time": "03:52 PM"
+  },
+  {
+    "text": "Lo siento, pero parece que hay una lista de instrucciones que no se relacionan directamente con el texto proporcionado. Sin embargo, puedo intentar ajustar el texto que has proporcionado según las reglas establecidas.\n\nAquí está el texto ajustado:\n\nQuedó perfecto, gracias por hacerlo. Ahora quiero que implementes lo siguiente:\n1. Haz el proceso.\n2. No hay un punto 2 mencionado.\n3. Haz la discusión.\n4. Envía el proceso.\n5. No hay un punto 5 mencionado.\n6. No hay un punto 6 mencionado.\n7. Elimina el proceso.\n\nSi deseas que se ajuste o se formatee de alguna manera específica, por favor, proporciona más detalles o contexto.",
+    "date": "2026-03-02",
+    "time": "03:51 PM"
+  },
+  {
     "text": "Entonces, ahora lo que quiero es que esta mejora la pases a la rama principal, que quede implementada en la rama principal. Ponle commit v4, ponle el nombre que corresponda, y yo me encargaré de subirlo a Github. Cuando te asegures de que esté implementado en la rama principal, elimina la rama fase 3.",
     "date": "2026-03-02",
     "time": "03:48 PM"
