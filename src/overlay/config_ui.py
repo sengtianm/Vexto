@@ -219,6 +219,26 @@ class ControlPanelWindow(QWidget):
         format_layout.addStretch()
         config_layout.addLayout(format_layout)
         
+        # Autostart Selector (Fase 6)
+        auto_layout = QHBoxLayout()
+        auto_layout.setContentsMargins(0, 5, 0, 0)
+        self.auto_checkbox = QCheckBox("🚀 Arrancar Vexto al iniciar Windows")
+        self.auto_checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.auto_checkbox.setStyleSheet("QCheckBox { color: #818CF8; font-weight: bold; font-size: 13px; background: transparent; border: none; } QCheckBox::indicator { width: 16px; height: 16px; border: 1px solid #3F3F5A; border-radius: 4px; background: #27273A; } QCheckBox::indicator:checked { background: #4F46E5; }")
+        
+        # Leemos el estado real del registro por seguridad, o el .env
+        import src.utils.autostart as autostart
+        is_auto = autostart.is_autostart_enabled()
+        # Reparamos el .env si no coincide
+        set_key(self.env_path, "AUTOSTART", "True" if is_auto else "False")
+        
+        self.auto_checkbox.setChecked(is_auto)
+        self.auto_checkbox.stateChanged.connect(self.change_autostart_state)
+        
+        auto_layout.addWidget(self.auto_checkbox)
+        auto_layout.addStretch()
+        config_layout.addLayout(auto_layout)
+        
         # Settings are now managed exclusively in .env file
         
         main_layout.addWidget(config_frame)
@@ -421,6 +441,22 @@ class ControlPanelWindow(QWidget):
         print(f"Formateo Inteligente: {val_str}")
         # Llama 3 lee os.getenv("SMART_FORMATTING") en cada dictado en provider.py,
         # por lo que no es estrictamente necesario reiniciar el hilo de captura de audio.
+
+    def change_autostart_state(self, state):
+        import src.utils.autostart as autostart
+        is_checked = bool(state == Qt.CheckState.Checked.value or state == 2)
+        val_str = "True" if is_checked else "False"
+        
+        # Impact registry OS Level
+        if is_checked:
+            autostart.enable_autostart()
+        else:
+            autostart.disable_autostart()
+            
+        # Update Persistency
+        set_key(self.env_path, "AUTOSTART", val_str)
+        os.environ["AUTOSTART"] = val_str
+        print(f"Arrancar con Windows: {val_str}")
 
     def start_backend(self):
         from main import start_background_services
