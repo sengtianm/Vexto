@@ -20,7 +20,7 @@ def get_overlay():
         _overlay_instance = VextoOverlay()
     return _overlay_instance
 
-def start_background_services():
+def start_background_services(history_callback=None):
     """
     Inicializa los servicios de audio e IA en segundo plano
     y devuelve el manejador de atajos para poder detenerlo.
@@ -33,8 +33,8 @@ def start_background_services():
     pipeline = AIPipeline()
     injector = TextInjector()
     
-    print(f"\n✅ Vexto Background Services Iniciados.")
-    print(f"👉 Atajo: Presiona '{hotkey}' para iniciar/detener grabación.\n")
+    print(f"\n[Vexto] Background Services Iniciados.")
+    print(f"[Vexto] Atajo: Presiona '{hotkey}' para iniciar/detener grabacion.\n")
     
     overlay = get_overlay()
     overlay.recorder_ref = recorder
@@ -55,6 +55,10 @@ def start_background_services():
                     final_text = pipeline.rewrite_text(transcription)
                     injector.inject(final_text)
                     
+                    # Log to history via callback to keep thread safety
+                    if history_callback:
+                        history_callback(final_text)
+                        
                 try:
                     os.remove(wav_path)
                 except:
