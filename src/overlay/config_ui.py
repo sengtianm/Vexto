@@ -6,7 +6,7 @@ from dotenv import load_dotenv, set_key
 
 from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QVBoxLayout, 
                              QHBoxLayout, QLineEdit, QPushButton, QMessageBox,
-                             QScrollArea, QFrame, QTextEdit, QInputDialog, QComboBox)
+                             QScrollArea, QFrame, QTextEdit, QInputDialog, QComboBox, QCheckBox)
 from PyQt6.QtCore import Qt, pyqtSignal
 
 class HistoryManager:
@@ -204,6 +204,21 @@ class ControlPanelWindow(QWidget):
         lang_layout.addStretch()
         config_layout.addLayout(lang_layout)
         
+        # Smart Formatting Selector (Fase 3)
+        format_layout = QHBoxLayout()
+        format_layout.setContentsMargins(0, 10, 0, 0)
+        self.format_checkbox = QCheckBox("🪄 Formateo Inteligente (Listas y Párrafos Automáticos)")
+        self.format_checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.format_checkbox.setStyleSheet("QCheckBox { color: #818CF8; font-weight: bold; font-size: 13px; background: transparent; border: none; } QCheckBox::indicator { width: 16px; height: 16px; border: 1px solid #3F3F5A; border-radius: 4px; background: #27273A; } QCheckBox::indicator:checked { background: #4F46E5; }")
+        
+        smart_formatting_env = os.getenv("SMART_FORMATTING", "False").lower() == "true"
+        self.format_checkbox.setChecked(smart_formatting_env)
+        self.format_checkbox.stateChanged.connect(self.change_formatting_state)
+        
+        format_layout.addWidget(self.format_checkbox)
+        format_layout.addStretch()
+        config_layout.addLayout(format_layout)
+        
         # Settings are now managed exclusively in .env file
         
         main_layout.addWidget(config_frame)
@@ -397,6 +412,15 @@ class ControlPanelWindow(QWidget):
             self.start_backend()
             
         self.lang_combo.blockSignals(False)
+
+    def change_formatting_state(self, state):
+        is_checked = bool(state == Qt.CheckState.Checked.value or state == 2)
+        val_str = "True" if is_checked else "False"
+        set_key(self.env_path, "SMART_FORMATTING", val_str)
+        os.environ["SMART_FORMATTING"] = val_str
+        print(f"Formateo Inteligente: {val_str}")
+        # Llama 3 lee os.getenv("SMART_FORMATTING") en cada dictado en provider.py,
+        # por lo que no es estrictamente necesario reiniciar el hilo de captura de audio.
 
     def start_backend(self):
         from main import start_background_services

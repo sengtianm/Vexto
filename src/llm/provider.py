@@ -62,11 +62,22 @@ class AIPipeline:
             "15. Puedes realizar microajustes naturales en expresiones habladas si no cambian el significado (ejemplo: separar palabras compuestas coloquiales).\n"
             "16. No elimines muletillas si forman parte del tono original.\n"
             "17. No expliques nada.\n\n"
-            "Nivel esperado:\n"
-            "Debe sonar exactamente como la misma persona escribió el texto, pero con ortografía y puntuación correctas. "
             "No debe parecer un correo corporativo ni un comunicado formal.\n\n"
+        )
+        
+        # Inyección de Smart Formatting (Fase 3)
+        if os.getenv("SMART_FORMATTING", "False").lower() in ["true", "1", "yes"]:
+            system_prompt += (
+                "---- REGLAS ADICIONALES DE FORMATEO (SMART FORMATTING ACTIVO) ----\n"
+                "Aplica formato estructurado (Markdown) de manera muy agresiva e inteligente si la entrada lo amerita:\n"
+                "- Si el usuario enlista o enumera cosas (Ej: 'compra leche huevos pan'), sepáralas forzosamente usando viñetas (guiones -) y saltos de línea reales.\n"
+                "- Si el usuario dicta un texto muy largo con diversos temas, rómpelo dinámicamente en párrafos distintos separados por doble salto de línea.\n"
+                "- Sé proactivo y asume cuándo el hablante quería crear una lista o un bloque de texto ordenado, y devuélvelo hermoso y legible.\n\n"
+            )
+            
+        system_prompt += (
             "Salida:\n"
-            "Devuelve únicamente el texto ajustado."
+            "Devuelve únicamente el texto ajustado (y formateado si aplica), sin introducciones."
         )
         
         try:
