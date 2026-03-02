@@ -6,7 +6,7 @@ from dotenv import load_dotenv, set_key
 
 from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QVBoxLayout, 
                              QHBoxLayout, QLineEdit, QPushButton, QMessageBox,
-                             QScrollArea, QFrame, QTextEdit)
+                             QScrollArea, QFrame, QTextEdit, QInputDialog, QComboBox)
 from PyQt6.QtCore import Qt, pyqtSignal
 
 class HistoryManager:
@@ -82,73 +82,142 @@ class ControlPanelWindow(QWidget):
 
     def init_ui(self):
         self.setWindowTitle("Vexto - Panel de Control")
-        self.setMinimumSize(450, 500)
-        self.resize(500, 600)
+        self.setMinimumSize(480, 550)
+        self.resize(500, 650)
+        
+        # Estilo Global Premium Oscuro
+        self.setStyleSheet("""
+            QWidget { background-color: #121212; color: #E5E7EB; font-family: 'Segoe UI', Inter, Roboto, sans-serif; font-size: 14px; }
+            QLineEdit { background-color: #27273A; border: 1px solid #3F3F5A; border-radius: 6px; padding: 8px; color: #FFFFFF; font-size: 13px; }
+            QLineEdit:focus { border: 1px solid #6366F1; background-color: #2A2A40; }
+            QPushButton { border: none; font-weight: bold; border-radius: 6px; padding: 8px 16px; font-size: 13px; }
+            QScrollArea { border: 1px solid #27273A; border-radius: 8px; background-color: #1E1E2E; }
+            QScrollBar:vertical { border: none; background: #121212; width: 8px; border-radius: 4px; }
+            QScrollBar::handle:vertical { background: #3F3F5A; min-height: 30px; border-radius: 4px; }
+            QScrollBar::handle:vertical:hover { background: #555570; }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { border: none; background: none; height: 0px; }
+            QComboBox { background-color: #27273A; border: 1px solid #3F3F5A; border-radius: 6px; padding: 6px 10px; color: #FFFFFF; font-size: 13px; font-weight: bold; }
+            QComboBox::drop-down { border: none; width: 24px; }
+            QComboBox::down-arrow { image: none; }
+            QComboBox QAbstractItemView { background-color: #1E1E2E; border: 1px solid #3F3F5A; selection-background-color: #4F46E5; color: #E5E7EB; border-radius: 4px; padding: 4px; }
+        """)
         
         main_layout = QVBoxLayout()
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(15)
+        main_layout.setContentsMargins(24, 24, 24, 24)
+        main_layout.setSpacing(18)
         
         # --- HEADER ---
         title = QLabel("🎙️ Vexto Dictation")
-        title.setStyleSheet("font-size: 22px; font-weight: bold; color: #2C3E50;")
+        title.setStyleSheet("font-size: 24px; font-weight: bold; color: #FFFFFF; letter-spacing: 0.5px;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(title)
         
-        self.status_label = QLabel("🔴 Detenido (Falta API Key)")
-        self.status_label.setStyleSheet("font-size: 14px; color: #E74C3C; font-weight: bold;")
-        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(self.status_label)
-        
         # --- CONFIGURATION SECTION ---
+        config_header_layout = QHBoxLayout()
+        config_header_layout.setContentsMargins(4, 0, 4, 0)
+        config_title = QLabel("⚙️ Configuración")
+        config_title.setStyleSheet("font-size: 15px; font-weight: bold; color: #FFFFFF; background: transparent;")
+        config_header_layout.addWidget(config_title)
+        
+        main_layout.addLayout(config_header_layout)
+        
         config_frame = QFrame()
-        config_frame.setStyleSheet("background-color: #F8F9F9; border-radius: 8px; padding: 10px;")
+        config_frame.setStyleSheet("QFrame { background-color: #1E1E2E; border: 1px solid #27273A; border-radius: 12px; padding: 12px; }")
         config_layout = QVBoxLayout(config_frame)
-        
-        # API Key Input
-        key_layout = QHBoxLayout()
-        key_label = QLabel("Groq API Key:")
-        key_label.setStyleSheet("font-weight: bold;")
-        self.key_input = QLineEdit()
-        self.key_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.key_input.setPlaceholderText("Ingresa tu API Key de Groq...")
-        
-        current_key = os.getenv("GROQ_API_KEY", "")
-        if current_key and current_key != "tu_clave_aqui":
-            self.key_input.setText(current_key)
-            
-        key_layout.addWidget(key_label)
-        key_layout.addWidget(self.key_input)
-        config_layout.addLayout(key_layout)
+        config_layout.setSpacing(12)
         
         # Hotkey Info
         hotq_layout = QHBoxLayout()
         hotq_label = QLabel("Atajo de Dictado:")
-        hotq_label.setStyleSheet("font-weight: bold;")
+        hotq_label.setStyleSheet("font-weight: bold; color: #9CA3AF; font-size: 13px; background: transparent; border: none;")
         hotq_val = os.getenv("RECORD_HOTKEY", "ctrl+space")
-        hotq_display = QLabel(f"<kbd>{hotq_val.upper()}</kbd>")
-        hotq_display.setStyleSheet("background-color: #E5E7E9; color: #333; padding: 4px; border-radius: 4px; font-family: monospace;")
+        self.hotq_display = QLabel(f"{hotq_val.upper()}")
+        self.hotq_display.setStyleSheet("background-color: #27273A; color: #6366F1; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-weight: bold; border: 1px solid #3F3F5A;")
+        
+        edit_hotq_btn = QPushButton("✎ Cambiar")
+        edit_hotq_btn.setStyleSheet("QPushButton { background-color: transparent; color: #818CF8; border: 1px solid #3F3F5A; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; } QPushButton:hover { background-color: #27273A; color: #A5B4FC; }")
+        edit_hotq_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        edit_hotq_btn.clicked.connect(self.change_hotkey)
+        
         hotq_layout.addWidget(hotq_label)
-        hotq_layout.addWidget(hotq_display)
+        hotq_layout.addWidget(self.hotq_display)
+        hotq_layout.addWidget(edit_hotq_btn)
         hotq_layout.addStretch()
         config_layout.addLayout(hotq_layout)
         
-        # Botones de Config
-        self.save_btn = QPushButton("Guardar y Reiniciar")
-        self.save_btn.setStyleSheet("background-color: #3498DB; color: white; padding: 8px; font-weight: bold; border-radius: 5px;")
-        self.save_btn.clicked.connect(self.save_and_restart)
-        config_layout.addWidget(self.save_btn)
+        # Microphone Device Selector
+        mic_layout = QHBoxLayout()
+        mic_label = QLabel("Micrófono:")
+        mic_label.setStyleSheet("font-weight: bold; color: #9CA3AF; font-size: 13px; background: transparent; border: none;")
+        self.mic_combo = QComboBox()
+        self.mic_combo.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.mic_combo.setMinimumWidth(250)
+        
+        # Populate Mics
+        from src.audio.capture import AudioRecorder
+        self.mics_list = AudioRecorder.get_microphones()
+        
+        current_mic_idx_str = os.getenv("RECORD_DEVICE_INDEX", "")
+        current_mic_idx = int(current_mic_idx_str) if current_mic_idx_str.isdigit() else None
+        
+        self.mic_combo.addItem("Predeterminado del Sistema", -1)
+        for mic in self.mics_list:
+            self.mic_combo.addItem(mic['name'], mic['id'])
+            
+        # Set current selection
+        if current_mic_idx is not None:
+            index = self.mic_combo.findData(current_mic_idx)
+            if index >= 0:
+                self.mic_combo.setCurrentIndex(index)
+                
+        # Connect change event
+        self.mic_combo.currentIndexChanged.connect(self.change_microphone)
+        
+        mic_layout.addWidget(mic_label)
+        mic_layout.addWidget(self.mic_combo)
+        mic_layout.addStretch()
+        config_layout.addLayout(mic_layout)
+        
+        # Language Selector
+        lang_layout = QHBoxLayout()
+        lang_label = QLabel("Idioma:")
+        lang_label.setStyleSheet("font-weight: bold; color: #9CA3AF; font-size: 13px; background: transparent; border: none;")
+        self.lang_combo = QComboBox()
+        self.lang_combo.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.lang_combo.setMinimumWidth(250)
+        
+        self.lang_combo.addItem("Español", "es")
+        self.lang_combo.addItem("Inglés", "en")
+        
+        current_lang = os.getenv("RECORD_LANGUAGE", "es")
+        index = self.lang_combo.findData(current_lang)
+        if index >= 0:
+            self.lang_combo.setCurrentIndex(index)
+            
+        self.lang_combo.currentIndexChanged.connect(self.change_language)
+        
+        # Guardado en variable de clase para evitar disparos accidentales
+        self.current_lang = current_lang
+        
+        lang_layout.addWidget(lang_label)
+        lang_layout.addWidget(self.lang_combo)
+        lang_layout.addStretch()
+        config_layout.addLayout(lang_layout)
+        
+        # Settings are now managed exclusively in .env file
         
         main_layout.addWidget(config_frame)
 
         # --- HISTORY SECTION ---
         hist_header_layout = QHBoxLayout()
+        hist_header_layout.setContentsMargins(4, 10, 4, 0)
         hist_title = QLabel("📝 Historial de Dictados")
-        hist_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #34495E;")
+        hist_title.setStyleSheet("font-size: 15px; font-weight: bold; color: #FFFFFF; background: transparent;")
         hist_header_layout.addWidget(hist_title)
         
         clear_hist_btn = QPushButton("Limpiar")
-        clear_hist_btn.setStyleSheet("background-color: transparent; color: #7F8C8D; border: 1px solid #BDC3C7; padding: 4px 10px; border-radius: 4px;")
+        clear_hist_btn.setStyleSheet("QPushButton { background-color: transparent; color: #9CA3AF; border: 1px solid #3F3F5A; padding: 4px 12px; border-radius: 6px; font-size: 12px; } QPushButton:hover { background-color: #27273A; color: #E5E7EB; }")
+        clear_hist_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         clear_hist_btn.setMaximumWidth(80)
         clear_hist_btn.clicked.connect(self.clear_history)
         hist_header_layout.addWidget(clear_hist_btn)
@@ -158,12 +227,14 @@ class ControlPanelWindow(QWidget):
         # Scroll Area for history
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setStyleSheet("QScrollArea { border: 1px solid #BDC3C7; border-radius: 8px; background-color: white; }")
+        # remove inline style as global style takes over
         
         self.history_container = QWidget()
-        self.history_container.setStyleSheet("background-color: white;")
+        self.history_container.setStyleSheet("background-color: #1E1E2E;")
         self.history_layout = QVBoxLayout(self.history_container)
         self.history_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.history_layout.setSpacing(10)
+        self.history_layout.setContentsMargins(12, 12, 12, 12)
         
         self.scroll_area.setWidget(self.history_container)
         main_layout.addWidget(self.scroll_area)
@@ -172,10 +243,7 @@ class ControlPanelWindow(QWidget):
         self.refresh_history_ui()
 
         # --- FOOTER ---
-        self.close_btn = QPushButton("🛑 CERRAR VEXTO COMPLETAMENTE")
-        self.close_btn.setStyleSheet("background-color: #E74C3C; color: white; padding: 12px; font-weight: bold; border-radius: 5px; font-size: 13px;")
-        self.close_btn.clicked.connect(self.close)
-        main_layout.addWidget(self.close_btn)
+        # El cierre ahora se maneja nativamente mediante la "X" de la ventana.
         
         self.setLayout(main_layout)
 
@@ -197,7 +265,7 @@ class ControlPanelWindow(QWidget):
         
         if not entries:
             empty_lbl = QLabel("No hay dictados recientes.")
-            empty_lbl.setStyleSheet("color: #95A5A6; font-style: italic; padding: 20px;")
+            empty_lbl.setStyleSheet("color: #6B7280; font-style: italic; font-size: 13px; background: transparent;")
             empty_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.history_layout.addWidget(empty_lbl)
             return
@@ -214,7 +282,7 @@ class ControlPanelWindow(QWidget):
                 current_date_group = date_str
                 
                 header = QLabel("Hoy" if date_str == today_str else date_str)
-                header.setStyleSheet("font-weight: bold; color: #2980B9; margin-top: 10px; border-bottom: 1px solid #ECF0F1;")
+                header.setStyleSheet("font-weight: bold; color: #818CF8; margin-top: 12px; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; background: transparent;")
                 self.history_layout.addWidget(header)
                 
             # Add Item
@@ -222,27 +290,30 @@ class ControlPanelWindow(QWidget):
 
     def _add_history_item_widget(self, entry):
         item_frame = QFrame()
-        item_frame.setStyleSheet("background-color: #FDFEFE; border: 1px solid #EAEDED; border-radius: 6px; margin-bottom: 5px;")
+        item_frame.setStyleSheet("QFrame { background-color: #27273A; border: 1px solid #3F3F5A; border-radius: 8px; }")
         item_layout = QVBoxLayout(item_frame)
-        item_layout.setContentsMargins(10, 8, 10, 8)
+        item_layout.setContentsMargins(14, 12, 14, 12)
+        item_layout.setSpacing(8)
         
         # Time and Copy Row
         top_row = QHBoxLayout()
+        top_row.setContentsMargins(0,0,0,0)
         
         time_lbl = QLabel(f"{entry.get('time', '')}")
-        time_lbl.setStyleSheet("color: #7F8C8D; font-size: 11px; border: none;")
+        time_lbl.setStyleSheet("color: #9CA3AF; font-size: 11px; border: none; font-weight: bold; background: transparent;")
         top_row.addWidget(time_lbl)
         top_row.addStretch()
         
         copy_btn = QPushButton("Copiar")
         copy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        copy_btn.setStyleSheet("background-color: #ECF0F1; color: #2C3E50; border: none; padding: 3px 8px; border-radius: 4px; font-size: 11px;")
+        copy_btn.setStyleSheet("QPushButton { background-color: #374151; color: #D1D5DB; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; } QPushButton:hover { background-color: #4B5563; color: white; }")
         
         # Inline function to handle copy
         def make_copy_func(text_to_copy):
             def copy_to_clipboard():
                 QApplication.clipboard().setText(text_to_copy)
-                copy_btn.setText("¡Copiado!")
+                copy_btn.setText("✓ Copiado")
+                copy_btn.setStyleSheet("QPushButton { background-color: #059669; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; }")
             return copy_to_clipboard
             
         copy_btn.clicked.connect(make_copy_func(entry.get("text", "")))
@@ -253,7 +324,8 @@ class ControlPanelWindow(QWidget):
         # Text Content
         text_disp = QLabel(entry.get("text", ""))
         text_disp.setWordWrap(True)
-        text_disp.setStyleSheet("color: #34495E; font-size: 13px; margin-top: 5px;")
+        text_disp.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        text_disp.setStyleSheet("color: #E5E7EB; font-size: 13px; line-height: 1.4; border: none; background: transparent;")
         
         item_layout.addWidget(text_disp)
         
@@ -267,14 +339,64 @@ class ControlPanelWindow(QWidget):
             self.history_manager.clear()
             self.refresh_history_ui()
 
-    def save_and_restart(self):
-        new_key = self.key_input.text().strip()
-        if not new_key:
-            QMessageBox.warning(self, "Error", "Por favor ingresa tu API Key de Groq.")
+
+
+    def change_hotkey(self):
+        current = os.getenv("RECORD_HOTKEY", "ctrl+space")
+        text, ok = QInputDialog.getText(self, 'Cambiar Atajo', 
+            'Ingresa el nuevo atajo:\n(Ejemplos: ctrl+space, alt+x, ctrl+shift+a)',
+            QLineEdit.EchoMode.Normal, current)
+            
+        if ok and text.strip():
+            new_hotkey = text.strip().lower()
+            # 1. Update UI
+            self.hotq_display.setText(new_hotkey.upper())
+            # 2. Update .env
+            set_key(self.env_path, "RECORD_HOTKEY", new_hotkey)
+            # 3. Update memory env so main.py reads it fresh
+            os.environ["RECORD_HOTKEY"] = new_hotkey
+            # 4. Reload backend if active
+            if self.hotkey_manager:
+                print(f"Reiniciando backend con nuevo atajo: {new_hotkey}")
+                self.start_backend()
+
+    def change_microphone(self, index):
+        mic_id_data = self.mic_combo.itemData(index)
+        
+        if mic_id_data == -1: 
+            # Predeterminado
+            set_key(self.env_path, "RECORD_DEVICE_INDEX", "")
+            os.environ["RECORD_DEVICE_INDEX"] = ""
+            print("Micrófono cambiado a: Predeterminado")
+        else:
+            # Especifico
+            set_key(self.env_path, "RECORD_DEVICE_INDEX", str(mic_id_data))
+            os.environ["RECORD_DEVICE_INDEX"] = str(mic_id_data)
+            print(f"Micrófono cambiado a ID: {mic_id_data}")
+            
+        if self.hotkey_manager:
+            self.start_backend()
+
+    def change_language(self, index):
+        lang_data = self.lang_combo.itemData(index)
+        
+        if lang_data == self.current_lang:
             return
             
-        set_key(self.env_path, "GROQ_API_KEY", new_key)
-        self.start_backend()
+        self.current_lang = lang_data
+        
+        # Bloquear señales momentaneamente para evitar bucles durante el reload
+        self.lang_combo.blockSignals(True)
+        set_key(self.env_path, "RECORD_LANGUAGE", lang_data)
+        os.environ["RECORD_LANGUAGE"] = lang_data
+        
+        print(f"Idioma cambiado a: {lang_data}")
+        # En el caso del idioma, ni siquiera hace falta reiniciar el Thread entero,
+        # pero reiniciar asegura un estado limpio de todo.
+        if self.hotkey_manager:
+            self.start_backend()
+            
+        self.lang_combo.blockSignals(False)
 
     def start_backend(self):
         from main import start_background_services
@@ -283,8 +405,6 @@ class ControlPanelWindow(QWidget):
             self.hotkey_manager.stop()
             
         # Pasar a main la función que emite la señal del historial para que pueda inyectarle datos de forma segura (Thread-Safe QT)
-        self.status_label.setText("🟢 Vexto ejecutándose (Escuchando atajo)")
-        self.status_label.setStyleSheet("font-size: 14px; color: #27AE60; font-weight: bold;")
         
         # Importante: inyectamos la llamada `add_history_signal.emit` a los servicios en background
         self.hotkey_manager = start_background_services(history_callback=self.add_history_signal.emit)

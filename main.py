@@ -28,13 +28,19 @@ def start_background_services(history_callback=None):
     load_dotenv()
     hotkey = os.getenv("RECORD_HOTKEY", "ctrl+space")
     
+    # Manejo del índice de micrófono opcional
+    device_index_str = os.getenv("RECORD_DEVICE_INDEX", "")
+    device_index = int(device_index_str) if device_index_str.isdigit() else None
+    
     # Inicializar componentes
-    recorder = AudioRecorder()
+    recorder = AudioRecorder(device_index=device_index)
     pipeline = AIPipeline()
     injector = TextInjector()
     
     print(f"\n[Vexto] Background Services Iniciados.")
-    print(f"[Vexto] Atajo: Presiona '{hotkey}' para iniciar/detener grabacion.\n")
+    print(f"[Vexto] Atajo: Presiona '{hotkey}' para iniciar/detener grabacion.")
+    if device_index is not None:
+        print(f"[Vexto] Micrófono forzado a ID: {device_index}\n")
     
     overlay = get_overlay()
     overlay.recorder_ref = recorder

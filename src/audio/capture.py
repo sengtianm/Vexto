@@ -6,10 +6,27 @@ import tempfile
 import os
 
 class AudioRecorder:
-    """Records audio from the default microphone and saves it to a temp WAV file."""
-    def __init__(self, samplerate=16000, channels=1):
+    """Records audio from a specific microphone and saves it to a temp WAV file."""
+    
+    @staticmethod
+    def get_microphones():
+        """Returns a list of dicts with 'id' and 'name' for available input devices."""
+        try:
+            devices = sd.query_devices()
+            mics = []
+            hostapi_default = sd.default.hostapi
+            for i, dev in enumerate(devices):
+                if dev['max_input_channels'] > 0 and dev['hostapi'] == hostapi_default:
+                    mics.append({"id": i, "name": dev['name']})
+            return mics
+        except Exception as e:
+            print(f"Error querying mics: {e}")
+            return []
+
+    def __init__(self, samplerate=16000, channels=1, device_index=None):
         self.samplerate = samplerate
         self.channels = channels
+        self.device_index = device_index
         self.q = queue.Queue()
         self.is_recording = False
         self.current_volume = 0.0
@@ -43,9 +60,11 @@ class AudioRecorder:
         self.is_recording = True
         
         if self._stream is None:
+            # Si el device_index es invalido, sounddevice usará el sistema por defecto
             self._stream = sd.InputStream(
                 samplerate=self.samplerate, 
                 channels=self.channels, 
+                device=self.device_index,
                 callback=self._callback
             )
             self._stream.start()
