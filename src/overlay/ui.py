@@ -1,20 +1,24 @@
 import math
+from typing import Any
 from PyQt6.QtWidgets import QApplication, QWidget
 from PyQt6.QtCore import Qt, pyqtSignal, QObject, QTimer, QRectF
+from src.utils import AppState
 from PyQt6.QtGui import QColor, QPainter, QPainterPath, QPen, QBrush
 
 class OverlaySignals(QObject):
     # Signals are thread-safe in PyQt!
     update_state = pyqtSignal(str)
+    update_volume = pyqtSignal(float)
 
 class VextoOverlay(QWidget):
     """Modern Dynamic Pill interface for Vexto."""
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.signals = OverlaySignals()
         self.signals.update_state.connect(self.set_state)
-        self.current_state = "idle"
-        self.recorder_ref = None # Will be set by main
+        self.signals.update_volume.connect(self.set_volume)
+        self.current_state = AppState.IDLE
+        self.current_volume = 0.0
         
         # Animation variables
         self.anim_tick = 0
@@ -23,7 +27,7 @@ class VextoOverlay(QWidget):
         
         self.init_ui()
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         # Frameless, Always on Top, and Tool (hides from Windows taskbar)
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint |
@@ -40,7 +44,7 @@ class VextoOverlay(QWidget):
         # Se calculará la posición dinámicamente cada vez que se muestre
         self.hide()
 
-    def update_position(self):
+    def update_position(self) -> None:
         """Mueve la píldora al centro superior del monitor activo (donde esté el mouse)"""
         # Obtener la posición global del mouse
         cursor_pos = self.cursor().pos()
@@ -50,32 +54,42 @@ class VextoOverlay(QWidget):
         if not screen:
             screen = QApplication.primaryScreen()
             
-        geom = screen.geometry()
-        
-        # Centrar horizontalmente en esa pantalla, y colocar a 16px del borde superior
-        self.move(int(geom.x() + geom.width() / 2 - self.width() / 2), geom.y() + 16)
+        if screen is not None:
+            geom = screen.geometry()
+            
+            # Centrar horizontalmente en esa pantalla, y colocar a 16px del borde superior
+            self.move(int(geom.x() + geom.width() / 2 - self.width() / 2), geom.y() + 16)
 
-    def set_state(self, state):
+    def set_volume(self, vol: float) -> None:
+        self.current_volume = vol
+
+    def set_state(self, state: str) -> None:
         self.current_state = state
         self.anim_tick = 0 # reset animation
+        self.current_volume = 0.0 # Reset visual memory
         
-        if state == "idle":
+        if state == AppState.IDLE:
             self.timer.stop()
             self.hide()
-        elif state == "listening":
+        elif state == AppState.LISTENING:
             self.update_position() # Mover al monitor correcto
             self.show()
             self.timer.start(16) # ~60 fps
-        elif state == "processing":
+        elif state == AppState.PROCESSING:
             self.update_position()
             self.show()
             self.timer.start(16)
+        elif state == AppState.ERROR:
+            self.update_position()
+            self.show()
+            self.timer.start(16)
+            QTimer.singleShot(2500, lambda: self.set_state(AppState.IDLE))
 
-    def animate(self):
+    def animate(self) -> None:
         self.anim_tick += 1
         self.update() # Llama a paintEvent automáticamente
 
-    def paintEvent(self, event):
+    def paintEvent(self, event: Any) -> None:
         """Dibuja completamente la UI estilo Glassmorphism y sus animaciones con Pincel vectorial."""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -93,14 +107,16 @@ class VextoOverlay(QWidget):
         painter.drawPath(path)
 
         # == 2. Dibujar las Animaciones según el estado ==
-        if self.current_state == "listening":
+        if self.current_state == AppState.LISTENING:
             self._draw_audio_waves(painter)
-        elif self.current_state == "processing":
+        elif self.current_state == AppState.PROCESSING:
             self._draw_spinner(painter)
+        elif self.current_state == AppState.ERROR:
+            self._draw_error(painter)
             
         painter.end()
 
-    def _draw_audio_waves(self, painter):
+    def _draw_audio_waves(self, painter: QPainter) -> None:
         """Ondas reactivas al sonido real (Aumentada sensibilidad)"""
         center_x = self.width() / 2
         center_y = self.height() / 2
@@ -117,10 +133,8 @@ class VextoOverlay(QWidget):
         # Blanco sólido
         painter.setBrush(QBrush(QColor(255, 255, 255, 255)))
         
-        # Leer el volumen real del micrófono si está disponible
-        vol = 0.0
-        if getattr(self, 'recorder_ref', None) and self.recorder_ref.is_recording:
-            vol = self.recorder_ref.current_volume
+        # Leer el volumen procesado por la señal asíncrona
+        vol = self.current_volume
             
         is_silent = vol < 0.02
         
@@ -151,7 +165,7 @@ class VextoOverlay(QWidget):
             painter.drawRoundedRect(int(x), int(y), int(bar_width), int(bar_height), 
                                   int(bar_width/2), int(bar_width/2))
             
-    def _draw_spinner(self, painter):
+    def _draw_spinner(self, painter: QPainter) -> None:
         """Anillo de carga minimalista y elegante pequeño"""
         center_x = self.width() / 2
         center_y = self.height() / 2
@@ -177,3 +191,16 @@ class VextoOverlay(QWidget):
             -start_angle * 16, 
             -span_angle * 16
         )
+
+    def _draw_error(self, painter):
+        """Cruz visible minimalista de color rojo alerta"""
+        center_x = self.width() / 2
+        center_y = self.height() / 2
+        
+        pen = QPen(QColor(239, 68, 68, 255))
+        pen.setWidth(2)
+        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        painter.setPen(pen)
+        
+        painter.drawLine(int(center_x - 4), int(center_y - 4), int(center_x + 4), int(center_y + 4))
+        painter.drawLine(int(center_x + 4), int(center_y - 4), int(center_x - 4), int(center_y + 4))

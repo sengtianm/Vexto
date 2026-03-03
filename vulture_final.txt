@@ -1,0 +1,4 @@
+src\overlay\config_ui.py:217: unused attribute 'wheelEvent' (60% confidence)
+src\overlay\config_ui.py:252: unused attribute 'wheelEvent' (60% confidence)
+src\overlay\config_ui.py:674: unused method 'closeEvent' (60% confidence)
+src\overlay\ui.py:92: unused method 'paintEvent' (60% confidence)

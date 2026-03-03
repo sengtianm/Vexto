@@ -1,0 +1,303 @@
+/* Vexto Global Stylesheet */
+#MasterWidget {
+    background-color: #242124;
+}
+
+QWidget { 
+    color: #E5E4E2; 
+    font-family: 'Segoe UI', Inter, Roboto, sans-serif; 
+    font-size: 13px; 
+}
+
+QLineEdit { 
+    background-color: #383838; 
+    border: 1px solid #383838; 
+    border-radius: 6px; 
+    padding: 10px; 
+    color: #E5E4E2; 
+    font-size: 14px; 
+}
+
+QLineEdit:focus { 
+    border: 1px solid #FFBA00; 
+    background-color: #383838; 
+}
+
+QPushButton { 
+    border: none; 
+    background-color: #242124; 
+    color: #E5E4E2; 
+    font-weight: bold; 
+    border-radius: 6px; 
+    padding: 10px 18px; 
+    font-size: 13px; 
+}
+
+QPushButton:hover { 
+    background-color: #FFBA00; 
+    color: #242124; 
+}
+
+QScrollArea { 
+    border: none; 
+    border-radius: 8px; 
+    background-color: transparent; 
+}
+
+QScrollBar:vertical { 
+    border: none; 
+    background: #242124; 
+    width: 6px; 
+    border-radius: 3px; 
+}
+
+QScrollBar::handle:vertical { 
+    background: #555555; 
+    min-height: 30px; 
+    border-radius: 3px; 
+}
+
+QScrollBar::handle:vertical:hover { 
+    background: #FFBA00; 
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { 
+    border: none; 
+    background: none; 
+    height: 0px; 
+}
+
+QComboBox { 
+    background-color: #242124; 
+    border: 1px solid #242124; 
+    border-radius: 6px; 
+    padding: 10px 14px; 
+    color: #E5E4E2; 
+    font-size: 14px; 
+}
+
+QComboBox::drop-down { 
+    border: none; 
+    width: 30px; 
+}
+
+QComboBox::down-arrow { 
+    image: none; 
+}
+
+QComboBox QAbstractItemView { 
+    background-color: #242124; 
+    border: 1px solid #555555; 
+    selection-background-color: #555555; 
+    selection-color: #FFBA00; 
+    color: #E5E4E2; 
+    border-radius: 6px; 
+    padding: 6px; 
+}
+
+QCheckBox { 
+    spacing: 10px; 
+}
+
+/* App Title */
+#AppTitle {
+    font-size: 42px; 
+    font-weight: 900; 
+    font-family: 'Segoe UI Black', Arial, sans-serif; 
+    color: #E5E4E2; 
+    letter-spacing: 2px;
+}
+
+/* Dashboard Cards */
+*[cssClass="StatCard"] {
+    background-color: #383838; 
+    border-radius: 8px;
+}
+
+*[cssClass="StatCardTitle"] {
+    font-size: 10px; 
+    font-weight: bold; 
+    color: #9E9E9E;
+    background: transparent;
+    letter-spacing: 1px;
+}
+
+*[cssClass="StatCardValueStreak"] { 
+    font-size: 20px; 
+    font-weight: 900; 
+    background: transparent; 
+    border: none;
+    color: #FFBA00; 
+}
+
+*[cssClass="StatCardValueNormal"] { 
+    font-size: 20px; 
+    font-weight: 900; 
+    background: transparent; 
+    border: none;
+    color: #E5E4E2; 
+}
+
+*[cssClass="StatCardSub"] {
+    font-size: 11px; 
+    color: #8E8E8E; 
+    background: transparent;
+}
+
+/* Custom Config Buttons & Labels */
+*[cssClass="ConfigSectionTitle"] {
+    font-size: 14px; 
+    font-weight: bold; 
+    color: #E5E4E2; 
+    background: transparent; 
+    text-align: left; 
+    text-transform: uppercase; 
+    letter-spacing: 1.5px; 
+    border: none; 
+    padding: 0;
+}
+
+#ConfigFrame { 
+    background-color: #383838; 
+    border: none; 
+    border-radius: 12px; 
+}
+
+*[cssClass="ConfigLabel"] {
+    color: #E5E4E2; 
+    font-size: 14px; 
+    background: transparent; 
+    border: none; 
+    font-weight: bold;
+}
+
+*[cssClass="HotkeyDisplay"] {
+    background-color: #242124; 
+    color: #FFBA00; 
+    padding: 8px 14px; 
+    border-radius: 6px; 
+    font-family: monospace; 
+    font-weight: bold; 
+    border: none;
+}
+
+*[cssClass="LinkButton"] {
+    background-color: transparent; 
+    color: #FFBA00; 
+    border: none; 
+    font-size: 13px; 
+    font-weight: bold; 
+    text-decoration: underline; 
+    padding: 0px;
+}
+
+*[cssClass="LinkButton"]:hover {
+    color: #E5E4E2;
+}
+
+QCheckBox::indicator { 
+    width: 18px; 
+    height: 18px; 
+    border: none; 
+    border-radius: 4px; 
+    background: #242124; 
+}
+
+QCheckBox::indicator:checked { 
+    background: #FFBA00; 
+}
+*[cssClass="ConfigCheckBox"] {
+    color: #E5E4E2; 
+    font-size: 14px; 
+    background: transparent; 
+    border: none;
+}
+
+*[cssClass="SectionHeader"] {
+    font-size: 14px; 
+    font-weight: bold; 
+    color: #E5E4E2; 
+    background: transparent; 
+    text-transform: uppercase; 
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+}
+
+*[cssClass="HistoryContainer"] {
+    background-color: transparent;
+}
+
+*[cssClass="HistoryEmpty"] {
+    color: #AFAFAF; 
+    font-style: italic; 
+    font-size: 14px; 
+    background: transparent;
+}
+
+*[cssClass="HistoryDateHeader"] {
+    font-weight: bold; 
+    color: #E5E4E2; 
+    font-size: 12px; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    background: transparent;
+}
+
+*[cssClass="HistoryItemFrame"] {
+    background-color: #555555; 
+    border: none; 
+    border-radius: 8px;
+}
+
+*[cssClass="HistoryItemTime"] {
+    color: #9E9E9E; 
+    font-size: 12px; 
+    border: none; 
+    background: transparent;
+}
+
+*[cssClass="HistoryItemCopy"] {
+    background-color: transparent; 
+    color: #FFBA00; 
+    border: none; 
+    padding: 0; 
+    font-size: 12px; 
+    font-weight: bold; 
+    text-decoration: underline;
+}
+*[cssClass="HistoryItemCopy"]:hover { 
+    color: #E5E4E2; 
+}
+*[cssClass="HistoryItemCopyDone"] {
+    background-color: transparent; 
+    color: #E5E4E2; 
+    border: none; 
+    padding: 0; 
+    font-size: 12px; 
+    font-weight: bold; 
+    text-decoration: none;
+}
+
+*[cssClass="HistoryItemText"] {
+    color: #E5E7EB; 
+    font-size: 13px; 
+    line-height: 1.4; 
+    border: none; 
+    background: transparent;
+}
+
+#MasterScroll {
+    border: none; 
+    background-color: transparent;
+}
+
+#MasterWidget {
+    background-color: transparent;
+}
+
+*[cssClass="MonitorIndicatorText"] {
+    font-size: 13px; 
+    color: #E5E4E2; 
+    background: transparent; 
+    font-weight: bold;
+}

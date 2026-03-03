@@ -1,13 +1,16 @@
 import os
-from groq import Groq
+from groq import Groq, APIConnectionError, RateLimitError, APIStatusError, AuthenticationError
 from dotenv import load_dotenv
+from src.utils import ConfigKeys, EnvVars, Models, AppState
+from src.services import AppSettingsService
 
 class AIPipeline:
     """Handles audio transcription and text processing via Groq."""
     def __init__(self):
         load_dotenv()
-        self.api_key = os.getenv("GROQ_API_KEY")
-        self.api_key_2 = os.getenv("GROQ_API_KEY_2")
+        self.app_settings = AppSettingsService()
+        self.api_key = os.getenv(ConfigKeys.GROQ_API_KEY)
+        self.api_key_2 = os.getenv(ConfigKeys.GROQ_API_KEY_2)
         
         if not self.api_key or self.api_key == "tu_clave_aqui":
             print("Warning: GROQ_API_KEY no configurada. El pipeline de IA fallará.")
@@ -21,33 +24,36 @@ class AIPipeline:
         if not self.clients:
             self.clients.append(Groq(api_key=self.api_key))
 
-    def transcribe_audio(self, audio_file_path):
+    def transcribe_audio(self, audio_file_path: str) -> str:
         """Transcribe audio completely locally using whisper-large-v3 via Groq for high speed."""
-        lang = os.getenv("RECORD_LANGUAGE", "es")
+        lang = self.app_settings.get(ConfigKeys.RECORD_LANGUAGE)
         
         for i, client in enumerate(self.clients):
             try:
                 with open(audio_file_path, "rb") as file:
                     transcription = client.audio.transcriptions.create(
                         file=(os.path.basename(audio_file_path), file.read()),
-                        model="whisper-large-v3",
+                        model=Models.WHISPER,
                         language=lang,
                         response_format="text"
                     )
-                os.environ["VEXTO_WHISPER_KEY"] = str(i+1)
+                os.environ[EnvVars.WHISPER_KEY] = str(i+1)
                 return transcription.strip()
-            except Exception as e:
-                print(f"[Whisper] Falló con API Key {i+1}. Motivo: {e}")
+            except (APIConnectionError, RateLimitError, APIStatusError, AuthenticationError) as e:
+                print(f"[Whisper] API Falló con Key {i+1}. Motivo: {type(e).__name__} - {e}")
                 continue
+            except Exception as e:
+                print(f"[Whisper] Error Crítico Local: {type(e).__name__} - {e}")
+                break
                 
-        os.environ["VEXTO_WHISPER_KEY"] = "ERROR"
+        os.environ[EnvVars.WHISPER_KEY] = getattr(EnvVars, 'ERROR_VAL', "ERROR")
         print("Error crítico en ASR: Todas las API Keys fallaron.")
         return ""
 
-    def rewrite_text(self, raw_text):
+    def rewrite_text(self, raw_text: str) -> str:
         """Cleans up the text, removes 'ehh's, and applies formatting."""
         # Detectar idioma objetivo
-        lang = os.getenv("RECORD_LANGUAGE", "es")
+        lang = self.app_settings.get(ConfigKeys.RECORD_LANGUAGE)
         language_instruction = "El texto de salida DEBE estar estrictamente en ESPAÑOL. No traduzcas al inglés bajo ninguna circunstancia." if lang == "es" else "The output text MUST be strictly in ENGLISH. Do not translate to Spanish under any circumstances."
         
         # Prompt personalizado de normalización + Barreras Anti-Asistente
@@ -63,9 +69,9 @@ class AIPipeline:
             "Devuelve solo el texto corregido.\n\n"
             "IDIOMA:\n"
             f"Regla de Idioma (CRÍTICA): {language_instruction}\n\n"
-            "────────────────────────\n"
+            "------------------------\n"
             "REGLAS OBLIGATORIAS\n"
-            "────────────────────────\n\n"
+            "------------------------\n\n"
             "A. Corrección ortográfica y tipográfica\n"
             "1. Corrige ortografía, tildes, capitalización y puntuación.\n"
             "2. Normaliza signos de puntuación duplicados, mal espaciados o incorrectamente combinados.\n"
@@ -98,12 +104,12 @@ class AIPipeline:
         )
         
         # Inyección de Smart Formatting (Fase 3)
-        is_smart = os.getenv("SMART_FORMATTING", "False").lower() in ["true", "1", "yes"]
+        is_smart = self.app_settings.get(ConfigKeys.SMART_FORMATTING).lower() in ["true", "1", "yes"]
         if is_smart:
             system_prompt += (
-                "────────────────────────\n"
+                "------------------------\n"
                 "SMART FORMATTING (SI ESTÁ ACTIVADO)\n"
-                "────────────────────────\n\n"
+                "------------------------\n\n"
                 "Aplica formato Markdown solo si la estructura del texto lo amerita.\n\n"
                 "1. Si detectas enumeraciones claras o implícitas, conviértelas en listas con guiones (-).\n"
                 "2. Si el texto desarrolla múltiples ideas extensas, sepáralas en párrafos.\n"
@@ -113,36 +119,38 @@ class AIPipeline:
             )
             
         system_prompt += (
-            "────────────────────────\n"
+            "------------------------\n"
             "SALIDA\n"
-            "────────────────────────\n\n"
+            "------------------------\n\n"
             "Devuelve únicamente el texto normalizado (y formateado si aplica), sin introducciones ni comentarios.\n"
         )
         
-        # Fase 5: XML Guardrails y Refuerzo Cognitivo (Hard Reminder)
-        reminder = "\n\n[INSTRUCCIÓN DEL SISTEMA: Aplica todas las reglas estrictamente al texto anterior."
+        # Fase 5: Recordatorio suave para modelos menores
         if is_smart:
-            reminder += " ADEMÁS, es tu OBLIGACIÓN aplicar SMART FORMATTING."
-        reminder += " Devuelve ÚNICAMENTE el texto normalizado, sin introducciones ni comentarios extras.]"
-        guarded_input = f"<dictado>\n{raw_text}\n</dictado>{reminder}"
+            guarded_input = f"<dictado>\n{raw_text}\n</dictado>\n\n(Aplica todas las reglas y Smart Formatting al texto anterior. Devuelve SOLO el texto resultante)"
+        else:
+            guarded_input = f"<dictado>\n{raw_text}\n</dictado>\n\n(Aplica todas las reglas al texto anterior. Devuelve SOLO el texto resultante)"
         
         for i, client in enumerate(self.clients):
             try:
                 completion = client.chat.completions.create(
-                    # Usamos Qwen 3 32B como motor ligero en la Fase 10
-                    model="openai/gpt-oss-20b", 
+                    model=Models.LLAMA, 
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": guarded_input}
                     ],
                     temperature=0.3,
+                    max_tokens=800,
                 )
-                os.environ["VEXTO_LLAMA_KEY"] = str(i+1)
+                os.environ[EnvVars.LLAMA_KEY] = str(i+1)
                 return completion.choices[0].message.content.strip()
-            except Exception as e:
-                print(f"[Qwen 32B] Falló con API Key {i+1}. Motivo: {e}")
+            except (APIConnectionError, RateLimitError, APIStatusError, AuthenticationError) as e:
+                print(f"[Llama 3.3] API Falló con Key {i+1}. Motivo: {type(e).__name__} - {e}")
                 continue
+            except Exception as e:
+                print(f"[Llama 3.3] Error Crítico Local: {type(e).__name__} - {e}")
+                break
                 
-        os.environ["VEXTO_LLAMA_KEY"] = "ERROR"
+        os.environ[EnvVars.LLAMA_KEY] = getattr(EnvVars, 'ERROR_VAL', "ERROR")
         print("Error crítico en LLM: Todas las API Keys agotaron su saldo o fallaron.")
         return raw_text

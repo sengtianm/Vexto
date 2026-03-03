@@ -2,75 +2,38 @@ import os
 import sys
 import json
 from datetime import datetime
-from dotenv import load_dotenv, set_key
+from dotenv import load_dotenv
+from typing import List, Dict, Any, Optional
 
 from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QVBoxLayout, 
                              QHBoxLayout, QLineEdit, QPushButton, QMessageBox,
-                             QScrollArea, QFrame, QTextEdit, QInputDialog, QComboBox, QCheckBox,
-                             QSystemTrayIcon, QMenu, QStyle, QGridLayout)
-from PyQt6.QtGui import QIcon, QAction, QPixmap
+                             QScrollArea, QFrame, QInputDialog, QComboBox, QCheckBox,
+                             QSystemTrayIcon, QMenu, QGridLayout)
+from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtCore import Qt, pyqtSignal
+from src.utils import HISTORY_FILE, ENV_FILE, LOGO_ICON
+from src.utils import ConfigKeys, EnvVars, AppState
 
-class HistoryManager:
-    """Manages the local dictation history file."""
-    def __init__(self):
-        self.history_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'historial.json')
-        
-    def add_entry(self, text):
-        if not text.strip(): return
-        
-        history = self.get_all()
-        
-        # New entry with timestamp
-        now = datetime.now()
-        entry = {
-            "text": text,
-            "date": now.strftime("%Y-%m-%d"),
-            "time": now.strftime("%I:%M %p")
-        }
-        
-        history.insert(0, entry) # Insert at beginning
-        
-        # Keep only last 100 entries to prevent infinite growth
-        history = history[:100]
-        
-        try:
-            with open(self.history_file, 'w', encoding='utf-8') as f:
-                json.dump(history, f, ensure_ascii=False, indent=2)
-        except Exception as e:
-            print(f"Error guardando historial: {e}")
-
-    def get_all(self):
-        if os.path.exists(self.history_file):
-            try:
-                with open(self.history_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except:
-                pass
-        return []
-
-    def clear(self):
-        if os.path.exists(self.history_file):
-            try:
-                os.remove(self.history_file)
-            except:
-                pass
-
+from src.services import HistoryManager
+from src.services import DashboardMetricsService
+from src.services import AppSettingsService
 
 class ControlPanelWindow(QWidget):
     # Definir señal para poder agregar texto al historial desde el hilo secundario
     add_history_signal = pyqtSignal(str)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), '.env')
+        self.env_path = ENV_FILE
         # Load existing or create empty
         if not os.path.exists(self.env_path):
             with open(self.env_path, 'w') as f:
-                f.write("GROQ_API_KEY=\nRECORD_HOTKEY=ctrl+space\n")
+                f.write(f"{ConfigKeys.GROQ_API_KEY}=\n{ConfigKeys.RECORD_HOTKEY}=ctrl+space\n")
         load_dotenv(self.env_path)
         
         self.history_manager = HistoryManager()
+        self.dashboard_service = DashboardMetricsService()
+        self.app_settings = AppSettingsService()
         self.hotkey_manager = None
         
         # Connect signal
@@ -80,33 +43,21 @@ class ControlPanelWindow(QWidget):
         self.setup_tray()
         
         # Iniciar backend automáticamente si hay clave
-        if os.getenv("GROQ_API_KEY") and os.getenv("GROQ_API_KEY") != "tu_clave_aqui":
+        if os.getenv(ConfigKeys.GROQ_API_KEY) and os.getenv(ConfigKeys.GROQ_API_KEY) != "tu_clave_aqui":
             self.start_backend()
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         self.setWindowTitle("Vexto - Panel de Control")
         # Diseño base cuadrado (Square UI), desbloqueando el límite vertical para manipulación del usuario
         self.setMinimumSize(540, 460)
         self.resize(560, 580)
         
-        # Estilo Global Premium Oscuro
-        self.setStyleSheet("""
-            QWidget { background-color: #242124; color: #E5E4E2; font-family: 'Segoe UI', Inter, Roboto, sans-serif; font-size: 13px; }
-            QLineEdit { background-color: #242124; border: 1px solid #242124; border-radius: 6px; padding: 10px; color: #E5E4E2; font-size: 14px; }
-            QLineEdit:focus { border: 1px solid #FFBA00; background-color: #242124; }
-            QPushButton { border: none; background-color: #242124; color: #E5E4E2; font-weight: bold; border-radius: 6px; padding: 10px 18px; font-size: 13px; }
-            QPushButton:hover { background-color: #FFBA00; color: #242124; }
-            QScrollArea { border: none; border-radius: 8px; background-color: transparent; }
-            QScrollBar:vertical { border: none; background: #242124; width: 6px; border-radius: 3px; }
-            QScrollBar::handle:vertical { background: #555555; min-height: 30px; border-radius: 3px; }
-            QScrollBar::handle:vertical:hover { background: #FFBA00; }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { border: none; background: none; height: 0px; }
-            QComboBox { background-color: #242124; border: 1px solid #242124; border-radius: 6px; padding: 10px 14px; color: #E5E4E2; font-size: 14px; }
-            QComboBox::drop-down { border: none; width: 30px; }
-            QComboBox::down-arrow { image: none; }
-            QComboBox QAbstractItemView { background-color: #242124; border: 1px solid #555555; selection-background-color: #555555; selection-color: #FFBA00; color: #E5E4E2; border-radius: 6px; padding: 6px; }
-            QCheckBox { spacing: 10px; }
-        """)
+        # Cargar CSS Global Refactorizado
+        from src.utils import PROJECT_ROOT
+        style_path = os.path.join(PROJECT_ROOT, "src", "assets", "styles.qss")
+        if os.path.exists(style_path):
+            with open(style_path, "r", encoding="utf-8") as f:
+                self.setStyleSheet(f.read())
         
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(35, 35, 35, 35)
@@ -118,7 +69,7 @@ class ControlPanelWindow(QWidget):
         header_layout.setContentsMargins(4, 0, 0, 0)
         
         title = QLabel("Vexto")
-        title.setStyleSheet("font-size: 42px; font-weight: 900; font-family: 'Segoe UI Black', Arial, sans-serif; color: #E5E4E2; letter-spacing: 2px;")
+        title.setObjectName("AppTitle")
         
         # Align left dynamically
         header_layout.addWidget(title)
@@ -133,56 +84,31 @@ class ControlPanelWindow(QWidget):
         
         def create_stat_card(title, value, subtitle, val_color="#E5E4E2"):
             card = QFrame()
-            card.setStyleSheet("QFrame { background-color: #383838; border-radius: 8px; }")
+            card.setProperty("cssClass", "StatCard")
             c_layout = QVBoxLayout(card)
             c_layout.setContentsMargins(15, 12, 15, 12)
             c_layout.setSpacing(2)
             
             lbl_title = QLabel(title.upper())
-            lbl_title.setStyleSheet("font-size: 10px; font-weight: bold; color: #E5E4E2; letter-spacing: 1px; opacity: 0.6; background: transparent;")
+            lbl_title.setProperty("cssClass", "StatCardTitle")
             
             lbl_val = QLabel(value)
-            lbl_val.setStyleSheet(f"font-size: 20px; font-weight: 900; color: {val_color}; background: transparent; border: none;")
+            lbl_val.setProperty("cssClass", "StatCardValueStreak" if val_color == "#FFBA00" else "StatCardValueNormal")
             
             lbl_sub = QLabel(subtitle)
             lbl_sub.setWordWrap(True)
-            lbl_sub.setStyleSheet("font-size: 11px; color: #E5E4E2; opacity: 0.5; background: transparent;")
+            lbl_sub.setProperty("cssClass", "StatCardSub")
             
             c_layout.addWidget(lbl_title)
             c_layout.addWidget(lbl_val)
             c_layout.addWidget(lbl_sub)
             return card, lbl_val, lbl_sub
             
-        self.dictated_words = int(os.getenv("DICTATED_WORDS", "0"))
-        self.total_dictations = int(os.getenv("TOTAL_DICTATIONS", "0"))
-        self.daily_streak = int(os.getenv("DAILY_STREAK", "0"))
-        self.last_dictation_date = os.getenv("LAST_DICTATION_DATE", "")
-        
-        # Check streak on load
-        today_date_str = datetime.now().strftime("%Y-%m-%d")
-        if self.last_dictation_date:
-            try:
-                last_dt = datetime.strptime(self.last_dictation_date, "%Y-%m-%d").date()
-                today_dt = datetime.now().date()
-                diff = (today_dt - last_dt).days
-                if diff > 1:
-                    self.daily_streak = 0
-                    set_key(self.env_path, "DAILY_STREAK", "0")
-                    os.environ["DAILY_STREAK"] = "0"
-            except:
-                pass
-                
-        def get_time_saved_str(words):
-            minutes = max(0.0, (words / 40.0) - (words / 150.0))
-            if minutes < 60:
-                return f"{int(minutes)} min"
-            else:
-                return f"{minutes/60:.1f} hrs"
-                
-        self.card_streak, self.lbl_streak, _ = create_stat_card("Racha Diaria", f"{self.daily_streak} día{'s' if self.daily_streak != 1 else ''} 🔥", "¡Sigue así!", "#FFBA00")
-        self.card_time, self.lbl_time, _ = create_stat_card("Tiempo Ahorrado", get_time_saved_str(self.dictated_words), "Neto vs Manual")
-        self.card_words, self.lbl_words, _ = create_stat_card("Palabras", f"{self.dictated_words:,}", "Dictadas en total")
-        self.card_dicts, self.lbl_dicts, _ = create_stat_card("Dictados", f"{self.total_dictations:,}", "Disparos totales")
+        stats = self.dashboard_service
+        self.card_streak, self.lbl_streak, _ = create_stat_card("Racha Diaria", f"{stats.daily_streak} día{'s' if stats.daily_streak != 1 else ''} 🔥", "¡Sigue así!", "#FFBA00")
+        self.card_time, self.lbl_time, _ = create_stat_card("Tiempo Ahorrado", stats.get_time_saved_str(), "Neto vs Manual")
+        self.card_words, self.lbl_words, _ = create_stat_card("Palabras", f"{stats.dictated_words:,}", "Dictadas en total")
+        self.card_dicts, self.lbl_dicts, _ = create_stat_card("Dictados", f"{stats.total_dictations:,}", "Disparos totales")
         
         dashboard_layout.addWidget(self.card_streak, 0, 0)
         dashboard_layout.addWidget(self.card_time, 0, 1)
@@ -191,7 +117,7 @@ class ControlPanelWindow(QWidget):
         
         # --- HORIZONTAL AI MONITOR ---
         self.monitor_card = QFrame()
-        self.monitor_card.setStyleSheet("QFrame { background-color: #383838; border-radius: 8px; }")
+        self.monitor_card.setProperty("cssClass", "StatCard")
         
         self.monitor_layout = QHBoxLayout(self.monitor_card)
         self.monitor_layout.setContentsMargins(15, 8, 15, 8)
@@ -199,8 +125,9 @@ class ControlPanelWindow(QWidget):
         self.monitor_layout.addStretch()
         
         def update_dot_color(lbl, target_num, current_key):
-            color = "#FFBA00" if current_key == target_num else "#D32F2F" if (target_num == "1" and current_key in ["2", "ERROR"]) or current_key == "ERROR" else "#E5E4E2"
-            lbl.setStyleSheet(f"font-size: 16px; background: transparent; color: {color};")
+            err = EnvVars.ERROR_VAL
+            color = "#FFBA00" if current_key == target_num else "#D32F2F" if (target_num == "1" and current_key in ["2", err]) or current_key == err else "#E5E4E2"
+            lbl.setStyleSheet(f"font-size: 24px; background: transparent; color: {color};")
             
         def create_indicator(text):
             h_layout = QHBoxLayout()
@@ -208,7 +135,7 @@ class ControlPanelWindow(QWidget):
             h_layout.setContentsMargins(0, 0, 0, 0)
             
             lbl_txt = QLabel(text)
-            lbl_txt.setStyleSheet("font-size: 13px; color: #E5E4E2; background: transparent; font-weight: bold;")
+            lbl_txt.setProperty("cssClass", "MonitorIndicatorText")
             lbl_txt.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight)
             
             lbl_dot = QLabel("●")
@@ -221,11 +148,11 @@ class ControlPanelWindow(QWidget):
             
         self.dot_w1 = create_indicator("Whisper (L1)")
         self.dot_w2 = create_indicator("Whisper (L2)")
-        self.dot_l1 = create_indicator("GPT-OSS 20B (L1)")
-        self.dot_l2 = create_indicator("GPT-OSS 20B (L2)")
+        self.dot_l1 = create_indicator("Llama 3.3 (L1)")
+        self.dot_l2 = create_indicator("Llama 3.3 (L2)")
         
-        w_key = os.environ.get("VEXTO_WHISPER_KEY", "1")
-        l_key = os.environ.get("VEXTO_LLAMA_KEY", "1")
+        w_key = os.environ.get(EnvVars.WHISPER_KEY, "1")
+        l_key = os.environ.get(EnvVars.LLAMA_KEY, "1")
         update_dot_color(self.dot_w1, "1", w_key)
         update_dot_color(self.dot_w2, "2", w_key)
         update_dot_color(self.dot_l1, "1", l_key)
@@ -243,7 +170,7 @@ class ControlPanelWindow(QWidget):
         config_header_layout.setContentsMargins(4, 0, 4, 0)
         
         self.config_title_btn = QPushButton("▶ Configuración General")
-        self.config_title_btn.setStyleSheet("font-size: 14px; font-weight: bold; color: #E5E4E2; background: transparent; text-align: left; text-transform: uppercase; letter-spacing: 1.5px; border: none; padding: 0;")
+        self.config_title_btn.setProperty("cssClass", "ConfigSectionTitle")
         self.config_title_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.config_title_btn.clicked.connect(self.toggle_config_section)
         
@@ -255,7 +182,6 @@ class ControlPanelWindow(QWidget):
         self.config_frame = QFrame()
         config_frame = self.config_frame
         config_frame.setObjectName("ConfigFrame")
-        config_frame.setStyleSheet("#ConfigFrame { background-color: #383838; border: none; border-radius: 12px; }")
         config_layout = QVBoxLayout(config_frame)
         config_layout.setContentsMargins(20, 24, 20, 24)
         config_layout.setSpacing(16)
@@ -263,14 +189,14 @@ class ControlPanelWindow(QWidget):
         # Hotkey Info
         hotq_layout = QHBoxLayout()
         hotq_label = QLabel("Atajo de Dictado")
-        hotq_label.setStyleSheet("color: #E5E4E2; font-size: 14px; background: transparent; border: none; font-weight: bold;")
+        hotq_label.setProperty("cssClass", "ConfigLabel")
         hotq_label.setFixedWidth(115)
-        hotq_val = os.getenv("RECORD_HOTKEY", "ctrl+space")
+        hotq_val = self.app_settings.get(ConfigKeys.RECORD_HOTKEY)
         self.hotq_display = QLabel(f"{hotq_val.upper()}")
-        self.hotq_display.setStyleSheet("background-color: #242124; color: #FFBA00; padding: 8px 14px; border-radius: 6px; font-family: monospace; font-weight: bold; border: none;")
+        self.hotq_display.setProperty("cssClass", "HotkeyDisplay")
         
         edit_hotq_btn = QPushButton("Cambiar Atajo")
-        edit_hotq_btn.setStyleSheet("QPushButton { background-color: transparent; color: #FFBA00; border: none; font-size: 13px; font-weight: bold; text-decoration: underline; padding: 0px; } QPushButton:hover { color: #E5E4E2; }")
+        edit_hotq_btn.setProperty("cssClass", "LinkButton")
         edit_hotq_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         edit_hotq_btn.clicked.connect(self.change_hotkey)
         
@@ -283,20 +209,19 @@ class ControlPanelWindow(QWidget):
         # Microphone Device Selector
         mic_layout = QHBoxLayout()
         mic_label = QLabel("Micrófono")
-        mic_label.setStyleSheet("color: #E5E4E2; font-size: 14px; background: transparent; border: none; font-weight: bold;")
+        mic_label.setProperty("cssClass", "ConfigLabel")
         mic_label.setFixedWidth(115)
         self.mic_combo = QComboBox()
         self.mic_combo.setCursor(Qt.CursorShape.PointingHandCursor)
         self.mic_combo.setFixedWidth(330)
-        self.mic_combo.setStyleSheet("QComboBox { background-color: #242124; border: none; border-radius: 6px; padding: 10px 14px; color: #E5E4E2; font-size: 14px; } QComboBox::drop-down { border: none; width: 30px; } QComboBox::down-arrow { image: none; } QComboBox QAbstractItemView { background-color: #242124; border: 1px solid #555555; selection-background-color: #555555; selection-color: #FFBA00; color: #E5E4E2; border-radius: 6px; padding: 6px; outline: none; }")
-        self.mic_combo.wheelEvent = lambda event: event.ignore()
+        self.mic_combo.wheelEvent = lambda event: event.ignore() # type: ignore
         
         # Populate Mics
-        from src.audio.capture import AudioRecorder
+        from src.audio import AudioRecorder
         self.mics_list = AudioRecorder.get_microphones()
         
-        current_mic_idx_str = os.getenv("RECORD_DEVICE_INDEX", "")
-        current_mic_idx = int(current_mic_idx_str) if current_mic_idx_str.isdigit() else None
+        current_mic_idx_str = self.app_settings.get(ConfigKeys.RECORD_DEVICE_INDEX)
+        current_mic_idx = int(current_mic_idx_str) if current_mic_idx_str and current_mic_idx_str.isdigit() else None
         
         self.mic_combo.addItem("Predeterminado del Sistema", -1)
         for mic in self.mics_list:
@@ -324,13 +249,12 @@ class ControlPanelWindow(QWidget):
         self.lang_combo = QComboBox()
         self.lang_combo.setCursor(Qt.CursorShape.PointingHandCursor)
         self.lang_combo.setFixedWidth(330)
-        self.lang_combo.setStyleSheet("QComboBox { background-color: #242124; border: none; border-radius: 6px; padding: 10px 14px; color: #E5E4E2; font-size: 14px; } QComboBox::drop-down { border: none; width: 30px; } QComboBox::down-arrow { image: none; } QComboBox QAbstractItemView { background-color: #242124; border: 1px solid #555555; selection-background-color: #555555; selection-color: #FFBA00; color: #E5E4E2; border-radius: 6px; padding: 6px; outline: none; }")
-        self.lang_combo.wheelEvent = lambda event: event.ignore()
+        self.lang_combo.wheelEvent = lambda event: event.ignore() # type: ignore
         
         self.lang_combo.addItem("Español", "es")
         self.lang_combo.addItem("Inglés", "en")
         
-        current_lang = os.getenv("RECORD_LANGUAGE", "es")
+        current_lang = self.app_settings.get(ConfigKeys.RECORD_LANGUAGE)
         index = self.lang_combo.findData(current_lang)
         if index >= 0:
             self.lang_combo.setCurrentIndex(index)
@@ -349,10 +273,10 @@ class ControlPanelWindow(QWidget):
         format_layout = QHBoxLayout()
         format_layout.setContentsMargins(0, 10, 0, 0)
         self.format_checkbox = QCheckBox("Aplicar formateo inteligente (Listas y puntuación)")
+        self.format_checkbox.setProperty("cssClass", "ConfigCheckBox")
         self.format_checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.format_checkbox.setStyleSheet("QCheckBox { color: #E5E4E2; font-size: 14px; background: transparent; border: none; } QCheckBox::indicator { width: 18px; height: 18px; border: none; border-radius: 4px; background: #242124; } QCheckBox::indicator:checked { background: #FFBA00; }")
         
-        smart_formatting_env = os.getenv("SMART_FORMATTING", "False").lower() == "true"
+        smart_formatting_env = self.app_settings.get(ConfigKeys.SMART_FORMATTING).lower() == "true"
         self.format_checkbox.setChecked(smart_formatting_env)
         self.format_checkbox.stateChanged.connect(self.change_formatting_state)
         
@@ -364,14 +288,14 @@ class ControlPanelWindow(QWidget):
         auto_layout = QHBoxLayout()
         auto_layout.setContentsMargins(0, 5, 0, 0)
         self.auto_checkbox = QCheckBox("Iniciar Vexto automáticamente con Windows")
+        self.auto_checkbox.setProperty("cssClass", "ConfigCheckBox")
         self.auto_checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.auto_checkbox.setStyleSheet("QCheckBox { color: #E5E4E2; font-size: 14px; background: transparent; border: none; } QCheckBox::indicator { width: 18px; height: 18px; border: none; border-radius: 4px; background: #242124; } QCheckBox::indicator:checked { background: #FFBA00; }")
         
         # Leemos el estado real del registro por seguridad, o el .env
         import src.utils.autostart as autostart
         is_auto = autostart.is_autostart_enabled()
-        # Reparamos el .env si no coincide
-        set_key(self.env_path, "AUTOSTART", "True" if is_auto else "False")
+        # Reparamos el setting json si no coincide
+        self.app_settings.set(ConfigKeys.AUTOSTART, "True" if is_auto else "False")
         
         self.auto_checkbox.setChecked(is_auto)
         self.auto_checkbox.stateChanged.connect(self.change_autostart_state)
@@ -392,13 +316,14 @@ class ControlPanelWindow(QWidget):
 
         # --- HISTORY SECTION ---
         hist_header_layout = QHBoxLayout()
-        hist_header_layout.setContentsMargins(4, 2, 4, 0)
+        # Top margin increased (yellow line), bottom margin decreased (green line)
+        hist_header_layout.setContentsMargins(4, 32, 4, 8)
         hist_title = QLabel("Historial de Actividad")
-        hist_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #E5E4E2; background: transparent; text-transform: uppercase; letter-spacing: 1.5px;")
+        hist_title.setProperty("cssClass", "SectionHeader")
         hist_header_layout.addWidget(hist_title)
         
         clear_hist_btn = QPushButton("Limpiar")
-        clear_hist_btn.setStyleSheet("QPushButton { background-color: transparent; color: #FFBA00; border: none; font-size: 13px; font-weight: bold; text-decoration: underline; } QPushButton:hover { color: #E5E4E2; }")
+        clear_hist_btn.setProperty("cssClass", "LinkButton")
         clear_hist_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         clear_hist_btn.setMaximumWidth(80)
         clear_hist_btn.clicked.connect(self.clear_history)
@@ -416,7 +341,7 @@ class ControlPanelWindow(QWidget):
         # remove inline style as global style takes over
         
         self.history_container = QWidget()
-        self.history_container.setStyleSheet("background-color: #242124;")
+        self.history_container.setProperty("cssClass", "HistoryContainer")
         self.history_layout = QVBoxLayout(self.history_container)
         self.history_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.history_layout.setSpacing(10)
@@ -436,11 +361,11 @@ class ControlPanelWindow(QWidget):
         # Master scroll area for the entire window
         master_scroll = QScrollArea()
         master_scroll.setWidgetResizable(True)
-        master_scroll.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
+        master_scroll.setObjectName("MasterScroll")
         master_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         
         master_widget = QWidget()
-        master_widget.setStyleSheet("background-color: transparent;")
+        master_widget.setObjectName("MasterWidget")
         master_widget.setLayout(main_layout)
         
         master_scroll.setWidget(master_widget)
@@ -468,61 +393,30 @@ class ControlPanelWindow(QWidget):
             self.history_manager.add_entry(text)
             self.refresh_history_ui()
             
-            # Update dashboard metrics
-            words_in_text = len(text.split())
-            self.total_dictations += 1
-            
-            today_idx = datetime.now().date()
-            today_str = datetime.now().strftime("%Y-%m-%d")
-            
-            if self.last_dictation_date != today_str:
-                if self.last_dictation_date:
-                    try:
-                        last_dt = datetime.strptime(self.last_dictation_date, "%Y-%m-%d").date()
-                        diff = (today_idx - last_dt).days
-                        if diff == 1:
-                            self.daily_streak += 1
-                        elif diff > 1:
-                            self.daily_streak = 1
-                    except:
-                        self.daily_streak = 1
-                else:
-                    self.daily_streak = 1
-                    
-                self.last_dictation_date = today_str
-                set_key(self.env_path, "LAST_DICTATION_DATE", self.last_dictation_date)
-                os.environ["LAST_DICTATION_DATE"] = self.last_dictation_date
-                set_key(self.env_path, "DAILY_STREAK", str(self.daily_streak))
-                os.environ["DAILY_STREAK"] = str(self.daily_streak)
-                
-            if words_in_text > 0:
-                self.dictated_words += words_in_text
-                set_key(self.env_path, "DICTATED_WORDS", str(self.dictated_words))
-                os.environ["DICTATED_WORDS"] = str(self.dictated_words)
-                
-            set_key(self.env_path, "TOTAL_DICTATIONS", str(self.total_dictations))
-            os.environ["TOTAL_DICTATIONS"] = str(self.total_dictations)
+            # Update metrics via Service
+            self.dashboard_service.add_dictation(text)
             
             # Update labels visually
-            self.lbl_streak.setText(f"{self.daily_streak} día{'s' if self.daily_streak != 1 else ''} 🔥")
-            
-            minutes = max(0.0, (self.dictated_words / 40.0) - (self.dictated_words / 150.0))
-            time_str = f"{int(minutes)} min" if minutes < 60 else f"{minutes/60:.1f} hrs"
-            self.lbl_time.setText(time_str)
-            self.lbl_words.setText(f"{self.dictated_words:,}")
+            stats = self.dashboard_service
+            self.lbl_streak.setText(f"{stats.daily_streak} día{'s' if stats.daily_streak != 1 else ''} 🔥")
+            self.lbl_time.setText(stats.get_time_saved_str())
+            self.lbl_words.setText(f"{stats.dictated_words:,}")
+            self.lbl_dicts.setText(f"{stats.total_dictations:,}")
         
-        w_key = os.environ.get("VEXTO_WHISPER_KEY", "1")
-        l_key = os.environ.get("VEXTO_LLAMA_KEY", "1")
+        w_key = os.environ.get(EnvVars.WHISPER_KEY, "1")
+        l_key = os.environ.get(EnvVars.LLAMA_KEY, "1")
         
         def update_dot_color(lbl, target_num, current_key):
-            color = "#FFBA00" if current_key == target_num else "#D32F2F" if (target_num == "1" and current_key in ["2", "ERROR"]) or current_key == "ERROR" else "#E5E4E2"
+            err = EnvVars.ERROR_VAL
+            color = "#FFBA00" if current_key == target_num else "#D32F2F" if (target_num == "1" and current_key in ["2", err]) or current_key == err else "#E5E4E2"
             lbl.setStyleSheet(f"font-size: 16px; background: transparent; color: {color};")
             
         update_dot_color(self.dot_w1, "1", w_key)
         update_dot_color(self.dot_w2, "2", w_key)
         update_dot_color(self.dot_l1, "1", l_key)
         update_dot_color(self.dot_l2, "2", l_key)
-        self.lbl_dicts.setText(f"{self.total_dictations:,}")
+        stats = self.dashboard_service
+        self.lbl_dicts.setText(f"{stats.total_dictations:,}")
 
     def refresh_history_ui(self):
         """Clears and rebuilds the history list based on local file"""
@@ -537,7 +431,7 @@ class ControlPanelWindow(QWidget):
         
         if not entries:
             empty_lbl = QLabel("No hay dictados recientes.")
-            empty_lbl.setStyleSheet("color: #E5E4E2; font-style: italic; font-size: 14px; background: transparent; opacity: 0.7;")
+            empty_lbl.setProperty("cssClass", "HistoryEmpty")
             empty_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.history_layout.addWidget(empty_lbl)
             return
@@ -547,6 +441,17 @@ class ControlPanelWindow(QWidget):
         today_str = datetime.now().strftime("%Y-%m-%d")
         
         for entry in entries:
+            # Parse timestamp to date and time if missing
+            ts = entry.get("timestamp")
+            if ts and not entry.get("time"):
+                try:
+                    dt = datetime.fromisoformat(ts)
+                    entry["date"] = dt.strftime("%Y-%m-%d")
+                    entry["time"] = dt.strftime("%I:%M %p").lower()
+                except Exception:
+                    entry["date"] = "Hoy"
+                    entry["time"] = "--:--"
+                    
             date_str = entry.get("date")
             
             # Add Header if date changed
@@ -555,7 +460,8 @@ class ControlPanelWindow(QWidget):
                 
                 header = QLabel("Hoy" if date_str == today_str else date_str)
                 mt = "0px" if not current_date_group else "24px"
-                header.setStyleSheet(f"font-weight: bold; color: #E5E4E2; margin-top: {mt}; margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; background: transparent;")
+                header.setProperty("cssClass", "HistoryDateHeader")
+                header.setStyleSheet(f"margin-top: {mt};")
                 self.history_layout.addWidget(header)
                 
             # Add Item
@@ -563,7 +469,7 @@ class ControlPanelWindow(QWidget):
 
     def _add_history_item_widget(self, entry):
         item_frame = QFrame()
-        item_frame.setStyleSheet("QFrame { background-color: #555555; border: none; border-radius: 8px; }")
+        item_frame.setProperty("cssClass", "HistoryItemFrame")
         item_layout = QVBoxLayout(item_frame)
         item_layout.setContentsMargins(18, 16, 18, 16)
         item_layout.setSpacing(10)
@@ -573,20 +479,20 @@ class ControlPanelWindow(QWidget):
         top_row.setContentsMargins(0,0,0,0)
         
         time_lbl = QLabel(f"{entry.get('time', '')}")
-        time_lbl.setStyleSheet("color: #E5E4E2; font-size: 12px; border: none; background: transparent; opacity: 0.6;")
+        time_lbl.setProperty("cssClass", "HistoryItemTime")
         top_row.addWidget(time_lbl)
         top_row.addStretch()
         
         copy_btn = QPushButton("Copiar")
         copy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        copy_btn.setStyleSheet("QPushButton { background-color: transparent; color: #FFBA00; border: none; padding: 0; font-size: 12px; font-weight: bold; text-decoration: underline; } QPushButton:hover { color: #E5E4E2; }")
+        copy_btn.setProperty("cssClass", "HistoryItemCopy")
         
         # Inline function to handle copy
         def make_copy_func(text_to_copy):
             def copy_to_clipboard():
                 QApplication.clipboard().setText(text_to_copy)
                 copy_btn.setText("✓ Copiado")
-                copy_btn.setStyleSheet("QPushButton { background-color: transparent; color: #E5E4E2; border: none; padding: 0; font-size: 12px; font-weight: bold; }")
+                copy_btn.setStyleSheet("color: #E5E4E2; text-decoration: none;")
             return copy_to_clipboard
             
         copy_btn.clicked.connect(make_copy_func(entry.get("text", "")))
@@ -598,7 +504,7 @@ class ControlPanelWindow(QWidget):
         text_disp = QLabel(entry.get("text", ""))
         text_disp.setWordWrap(True)
         text_disp.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        text_disp.setStyleSheet("color: #E5E7EB; font-size: 13px; line-height: 1.4; border: none; background: transparent;")
+        text_disp.setProperty("cssClass", "HistoryItemText")
         
         item_layout.addWidget(text_disp)
         
@@ -621,30 +527,17 @@ class ControlPanelWindow(QWidget):
             self.refresh_history_ui()
             
             # Reset word counter and all dashboard metrics
-            self.dictated_words = 0
-            self.total_dictations = 0
-            self.daily_streak = 0
-            self.last_dictation_date = ""
+            self.dashboard_service.reset_stats()
             
             self.lbl_streak.setText("0 días 🔥")
             self.lbl_time.setText("0 min")
             self.lbl_words.setText("0")
             self.lbl_dicts.setText("0")
-            
-            set_key(self.env_path, "DICTATED_WORDS", "0")
-            set_key(self.env_path, "TOTAL_DICTATIONS", "0")
-            set_key(self.env_path, "DAILY_STREAK", "0")
-            set_key(self.env_path, "LAST_DICTATION_DATE", "")
-            
-            os.environ["DICTATED_WORDS"] = "0"
-            os.environ["TOTAL_DICTATIONS"] = "0"
-            os.environ["DAILY_STREAK"] = "0"
-            os.environ["LAST_DICTATION_DATE"] = ""
 
 
 
     def change_hotkey(self):
-        current = os.getenv("RECORD_HOTKEY", "ctrl+space")
+        current = self.app_settings.get(ConfigKeys.RECORD_HOTKEY)
         text, ok = QInputDialog.getText(self, 'Cambiar Atajo', 
             'Ingresa el nuevo atajo:\n(Ejemplos: ctrl+space, alt+x, ctrl+shift+a)',
             QLineEdit.EchoMode.Normal, current)
@@ -653,11 +546,9 @@ class ControlPanelWindow(QWidget):
             new_hotkey = text.strip().lower()
             # 1. Update UI
             self.hotq_display.setText(new_hotkey.upper())
-            # 2. Update .env
-            set_key(self.env_path, "RECORD_HOTKEY", new_hotkey)
-            # 3. Update memory env so main.py reads it fresh
-            os.environ["RECORD_HOTKEY"] = new_hotkey
-            # 4. Reload backend if active
+            # 2. Update config file (aislado)
+            self.app_settings.set(ConfigKeys.RECORD_HOTKEY, new_hotkey)
+            # 3. Reload backend if active
             if self.hotkey_manager:
                 print(f"Reiniciando backend con nuevo atajo: {new_hotkey}")
                 self.start_backend()
@@ -667,13 +558,11 @@ class ControlPanelWindow(QWidget):
         
         if mic_id_data == -1: 
             # Predeterminado
-            set_key(self.env_path, "RECORD_DEVICE_INDEX", "")
-            os.environ["RECORD_DEVICE_INDEX"] = ""
+            self.app_settings.set(ConfigKeys.RECORD_DEVICE_INDEX, "")
             print("Micrófono cambiado a: Predeterminado")
         else:
             # Especifico
-            set_key(self.env_path, "RECORD_DEVICE_INDEX", str(mic_id_data))
-            os.environ["RECORD_DEVICE_INDEX"] = str(mic_id_data)
+            self.app_settings.set(ConfigKeys.RECORD_DEVICE_INDEX, str(mic_id_data))
             print(f"Micrófono cambiado a ID: {mic_id_data}")
             
         if self.hotkey_manager:
@@ -689,8 +578,7 @@ class ControlPanelWindow(QWidget):
         
         # Bloquear señales momentaneamente para evitar bucles durante el reload
         self.lang_combo.blockSignals(True)
-        set_key(self.env_path, "RECORD_LANGUAGE", lang_data)
-        os.environ["RECORD_LANGUAGE"] = lang_data
+        self.app_settings.set(ConfigKeys.RECORD_LANGUAGE, lang_data)
         
         print(f"Idioma cambiado a: {lang_data}")
         # En el caso del idioma, ni siquiera hace falta reiniciar el Thread entero,
@@ -703,8 +591,7 @@ class ControlPanelWindow(QWidget):
     def change_formatting_state(self, state):
         is_checked = bool(state == Qt.CheckState.Checked.value or state == 2)
         val_str = "True" if is_checked else "False"
-        set_key(self.env_path, "SMART_FORMATTING", val_str)
-        os.environ["SMART_FORMATTING"] = val_str
+        self.app_settings.set(ConfigKeys.SMART_FORMATTING, val_str)
         print(f"Formateo Inteligente: {val_str}")
         # Llama 3 lee os.getenv("SMART_FORMATTING") en cada dictado en provider.py,
         # por lo que no es estrictamente necesario reiniciar el hilo de captura de audio.
@@ -721,8 +608,7 @@ class ControlPanelWindow(QWidget):
             autostart.disable_autostart()
             
         # Update Persistency
-        set_key(self.env_path, "AUTOSTART", val_str)
-        os.environ["AUTOSTART"] = val_str
+        self.app_settings.set(ConfigKeys.AUTOSTART, val_str)
         print(f"Arrancar con Windows: {val_str}")
 
     def start_backend(self):
@@ -738,8 +624,7 @@ class ControlPanelWindow(QWidget):
 
     def setup_tray(self):
         # Usamos el logo oficial para el System Tray
-        icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "logo3.svg")
-        icon = QIcon(icon_path)
+        icon = QIcon(LOGO_ICON)
         self.tray_icon = QSystemTrayIcon(icon, self)
         
         self.tray_icon.setToolTip("Vexto Dictation - En espera")
@@ -772,13 +657,19 @@ class ControlPanelWindow(QWidget):
         
     def quit_app(self):
         print("Cerrando Vexto por completo...")
-        if self.hotkey_manager:
-            self.hotkey_manager.stop()
         self.tray_icon.hide()
+        
+        # Ocultar la ventana de inmediato para responsividad
+        self.hide()
+        
+        # Invocamos el apagado elegante de hilos
+        try:
+            from main import stop_background_services
+            stop_background_services(self.hotkey_manager)
+        except Exception as e:
+            print(f"Error durante el apagado elegante: {e}")
+            
         QApplication.quit()
-        # Matamos abruptamente el proceso para evitar hilos zombis (Ej. del módulo keyboard)
-        import os
-        os._exit(0)
 
     def closeEvent(self, event):
         # En lugar de cerrar la app o los servicios, solo ocultamos la ventana visual
@@ -790,15 +681,14 @@ def main():
     try:
         myappid = 'vexto.dictation.app.1.0'
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-    except:
-        pass
+    except Exception as e:
+        print(f"Falla silenciosa registrando AppUserModelID: {e}")
 
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
     
     # Set Global App Icon (Taskbar)
-    icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "logo3.svg")
-    app.setWindowIcon(QIcon(icon_path))
+    app.setWindowIcon(QIcon(LOGO_ICON))
     
     window = ControlPanelWindow()
     

@@ -5,7 +5,7 @@ import time
 class TextInjector:
     """Injects processed text securely into the currently active window."""
     
-    def inject(self, text):
+    def inject(self, text: str) -> None:
         if not text:
             return
 
