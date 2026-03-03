@@ -1,0 +1,1 @@
+import sys, os; sys.path.append(os.getcwd()); from src.llm.provider import AIPipeline; p = AIPipeline(); r = p.rewrite_text("hola que tal ehh quiero comprar leche huevos y pam"); print(f"RESULTADO: {r}")

@@ -172,20 +172,38 @@ class ControlPanelWindow(QWidget):
             except:
                 pass
                 
-        def get_time_saved_str(words):
-            minutes = words / 40.0
-            if minutes < 60:
-                return f"{int(minutes)} min"
-            else:
-                return f"{minutes/60:.1f} hrs"
+        def create_monitor_card():
+            card = QFrame()
+            card.setStyleSheet("QFrame { background-color: #383838; border-radius: 8px; }")
+            c_layout = QVBoxLayout(card)
+            c_layout.setContentsMargins(15, 8, 15, 8)
+            c_layout.setSpacing(2)
+            
+            lbl_title = QLabel("IAs ACTIVAS")
+            lbl_title.setStyleSheet("font-size: 10px; font-weight: bold; color: #FFBA00; letter-spacing: 1px; background: transparent;")
+            c_layout.addWidget(lbl_title)
+            
+            w_key = os.environ.get("VEXTO_WHISPER_KEY", "1")
+            l_key = os.environ.get("VEXTO_LLAMA_KEY", "1")
+            
+            self.lbl_w1 = QLabel("🎙️ Whisper (L1): " + ("🟢 En Uso" if w_key == "1" else "🔴 Límite Alcanzado" if w_key != "1" else "⚪ En Espera"))
+            self.lbl_w2 = QLabel("🎙️ Whisper (L2): " + ("🟢 En Uso" if w_key == "2" else "⚪ En Espera"))
+            self.lbl_l1 = QLabel("🧠 Llama 70B (L1): " + ("🟢 En Uso" if l_key == "1" else "🔴 Límite Alcanzado" if l_key != "1" else "⚪ En Espera"))
+            self.lbl_l2 = QLabel("🧠 Llama 70B (L2): " + ("🟢 En Uso" if l_key == "2" else "⚪ En Espera"))
+            
+            for lbl in [self.lbl_w1, self.lbl_w2, self.lbl_l1, self.lbl_l2]:
+                lbl.setStyleSheet("font-size: 9px; color: #E5E4E2; background: transparent; font-weight: bold;")
+                c_layout.addWidget(lbl)
+                
+            return card
                 
         self.card_streak, self.lbl_streak, _ = create_stat_card("Racha Diaria", f"{self.daily_streak} día{'s' if self.daily_streak != 1 else ''} 🔥", "¡Sigue así!", "#FFBA00")
-        self.card_time, self.lbl_time, _ = create_stat_card("Tiempo Ahorrado", get_time_saved_str(self.dictated_words), "A 40 palabras/min")
+        self.card_monitor = create_monitor_card()
         self.card_words, self.lbl_words, _ = create_stat_card("Palabras", f"{self.dictated_words:,}", "Dictadas en total")
         self.card_dicts, self.lbl_dicts, _ = create_stat_card("Dictados", f"{self.total_dictations:,}", "Disparos totales")
         
         dashboard_layout.addWidget(self.card_streak, 0, 0)
-        dashboard_layout.addWidget(self.card_time, 0, 1)
+        dashboard_layout.addWidget(self.card_monitor, 0, 1)
         dashboard_layout.addWidget(self.card_words, 1, 0)
         dashboard_layout.addWidget(self.card_dicts, 1, 1)
         
@@ -458,9 +476,12 @@ class ControlPanelWindow(QWidget):
         # Update labels visually
         self.lbl_streak.setText(f"{self.daily_streak} día{'s' if self.daily_streak != 1 else ''} 🔥")
         
-        minutes = self.dictated_words / 40.0
-        time_str = f"{int(minutes)} min" if minutes < 60 else f"{minutes/60:.1f} hrs"
-        self.lbl_time.setText(time_str)
+        w_key = os.environ.get("VEXTO_WHISPER_KEY", "1")
+        l_key = os.environ.get("VEXTO_LLAMA_KEY", "1")
+        self.lbl_w1.setText("🎙️ Whisper (L1): " + ("🟢 En Uso" if w_key == "1" else "🔴 Límite Alcanzado" if w_key != "1" else "⚪ En Espera"))
+        self.lbl_w2.setText("🎙️ Whisper (L2): " + ("🟢 En Uso" if w_key == "2" else "⚪ En Espera"))
+        self.lbl_l1.setText("🧠 Llama 70B (L1): " + ("🟢 En Uso" if l_key == "1" else "🔴 Límite Alcanzado" if l_key != "1" else "⚪ En Espera"))
+        self.lbl_l2.setText("🧠 Llama 70B (L2): " + ("🟢 En Uso" if l_key == "2" else "⚪ En Espera"))
         
         self.lbl_words.setText(f"{self.dictated_words:,}")
         self.lbl_dicts.setText(f"{self.total_dictations:,}")
@@ -568,7 +589,6 @@ class ControlPanelWindow(QWidget):
             self.last_dictation_date = ""
             
             self.lbl_streak.setText("0 días 🔥")
-            self.lbl_time.setText("0 min")
             self.lbl_words.setText("0")
             self.lbl_dicts.setText("0")
             

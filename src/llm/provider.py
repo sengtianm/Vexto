@@ -7,28 +7,42 @@ class AIPipeline:
     def __init__(self):
         load_dotenv()
         self.api_key = os.getenv("GROQ_API_KEY")
+        self.api_key_2 = os.getenv("GROQ_API_KEY_2")
         
         if not self.api_key or self.api_key == "tu_clave_aqui":
             print("Warning: GROQ_API_KEY no configurada. El pipeline de IA fallará.")
             
-        self.client = Groq(api_key=self.api_key)
+        self.clients = []
+        if self.api_key and self.api_key != "tu_clave_aqui":
+            self.clients.append(Groq(api_key=self.api_key))
+        if self.api_key_2 and self.api_key_2 != "tu_clave_aqui":
+            self.clients.append(Groq(api_key=self.api_key_2))
+            
+        if not self.clients:
+            self.clients.append(Groq(api_key=self.api_key))
 
     def transcribe_audio(self, audio_file_path):
         """Transcribe audio completely locally using whisper-large-v3 via Groq for high speed."""
-        try:
-            with open(audio_file_path, "rb") as file:
-                # Opcional: Especificar idioma
-                lang = os.getenv("RECORD_LANGUAGE", "es")
-                transcription = self.client.audio.transcriptions.create(
-                    file=(os.path.basename(audio_file_path), file.read()),
-                    model="whisper-large-v3",
-                    language=lang,
-                    response_format="text"
-                )
-            return transcription.strip()
-        except Exception as e:
-            print(f"Error en ASR: {e}")
-            return ""
+        lang = os.getenv("RECORD_LANGUAGE", "es")
+        
+        for i, client in enumerate(self.clients):
+            try:
+                with open(audio_file_path, "rb") as file:
+                    transcription = client.audio.transcriptions.create(
+                        file=(os.path.basename(audio_file_path), file.read()),
+                        model="whisper-large-v3",
+                        language=lang,
+                        response_format="text"
+                    )
+                os.environ["VEXTO_WHISPER_KEY"] = str(i+1)
+                return transcription.strip()
+            except Exception as e:
+                print(f"[Whisper] Falló con API Key {i+1}. Motivo: {e}")
+                continue
+                
+        os.environ["VEXTO_WHISPER_KEY"] = "ERROR"
+        print("Error crítico en ASR: Todas las API Keys fallaron.")
+        return ""
 
     def rewrite_text(self, raw_text):
         """Cleans up the text, removes 'ehh's, and applies formatting."""
@@ -85,21 +99,26 @@ class AIPipeline:
             "Devuelve únicamente el texto ajustado (y formateado si aplica), sin introducciones."
         )
         
-        try:
-            # Envolver el input crudo en XML tags para aislar la instrucción del dato.
-            # Fase 5: XML Guardrails
-            guarded_input = f"<dictado>\n{raw_text}\n</dictado>"
-            
-            completion = self.client.chat.completions.create(
-                # Usamos Llama 3.3 70B según tu petición para mayor calidad de redacción
-                model="llama-3.3-70b-versatile", 
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": guarded_input}
-                ],
-                temperature=0.3,
-            )
-            return completion.choices[0].message.content.strip()
-        except Exception as e:
-            print(f"Error en LLM: {e}")
-            return raw_text
+        # Fase 5: XML Guardrails
+        guarded_input = f"<dictado>\n{raw_text}\n</dictado>"
+        
+        for i, client in enumerate(self.clients):
+            try:
+                completion = client.chat.completions.create(
+                    # Usamos Llama 3.3 70B como motor definitivo por su alta capacidad gramatical
+                    model="llama-3.3-70b-versatile", 
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": guarded_input}
+                    ],
+                    temperature=0.3,
+                )
+                os.environ["VEXTO_LLAMA_KEY"] = str(i+1)
+                return completion.choices[0].message.content.strip()
+            except Exception as e:
+                print(f"[Llama 70B] Falló con API Key {i+1}. Motivo: {e}")
+                continue
+                
+        os.environ["VEXTO_LLAMA_KEY"] = "ERROR"
+        print("Error crítico en LLM: Todas las API Keys agotaron su saldo o fallaron.")
+        return raw_text
