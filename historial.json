@@ -1,257 +1,92 @@
 [
   {
-    "text": "Hola, espero que todo haya salido bien. Por favor, llámenme cuando estén ya en casa.",
+    "text": "Quiero que me escribas aquí exactamente todo el PROM que se manda al modelo Llama 3.3 de 70 billones. Todo el System PROM. Exacto como se envía cada vez que yo hago un dictado. No omitas nada. Por favor, quiero revisar exactamente el PROM para ver si yo lo puedo optimizar de alguna manera.",
     "date": "2026-03-03",
-    "time": "12:23 AM"
+    "time": "11:24 AM"
   },
   {
-    "text": "¿Hay alguna manera de que podamos ver ese uso de límite de los modelos con la API Key? O sea, que, por ejemplo, en la interfaz, cambiemos el gráfico de tiempo ahorrado. Creo que no es tan práctico, pero que podamos visualizar API Q1, o por ejemplo, sí, API 1, que me dice cuánto porcentaje voy de uso, y API 2, cuánto porcentaje. \n\nY así, pues, tener algo visual, porque si no, nunca los sabré. O no sé si la otra forma es que cuando se... ¿Cuándo qué? Cuando suceda que el límite de alguno de los dos modelos que estamos utilizando en alguna de las API key llegue a su límite y me salga un mensaje o algo en que ya la API 1 ya no se está utilizando, sino que es la API 2. \n\nNo sé qué sea más factible. Me gustaría la opción 1 de poder visualizarlo en la interfaz, pero no sé si es viable y si se puede hacer.",
+    "text": "Haz la opción A, impléntalo.",
     "date": "2026-03-03",
-    "time": "12:09 AM"
+    "time": "11:21 AM"
   },
   {
-    "text": "Quiero que vayan a encontrar lo siguiente:\n- Huevo\n- Carne\n- Arroz\n- Lentejas\n- Pollo",
+    "text": "Perfecto, entonces continuemos. Hay una mejora que quiero que revises, o una función que quiero que revises, y es el cálculo del tiempo ahorrado. Es que se me hace muy raro, porque actualmente llevo 498 palabras dictadas y me está diciendo que ya he ahorrado 12 minutos. Es imposible que en 498 palabras ya lleve 12 minutos ahorrados. Revisa la fórmula. Realmente, la fórmula está bien. ¿Está calculando bien el tiempo ahorrado?",
     "date": "2026-03-03",
-    "time": "12:06 AM"
+    "time": "11:18 AM"
   },
   {
-    "text": "Hola, ¿cómo están?",
+    "text": "Perfecto, así quedó bien.",
     "date": "2026-03-03",
-    "time": "12:05 AM"
+    "time": "11:17 AM"
+  },
+  {
+    "text": "Listo, ahora quiero que hagas una auditoría de la función de los círculos. Dime si realmente está funcionando, que se ponga en amarillo cuando está funcionando ese modelo con esa API Key, que si no se está utilizando se ponga en blanco y cuando llega al límite se ponga en rojo. Solo quiero que hagas la auditoría y el análisis si realmente está funcionando, si se actualiza cada que hago un dictado, solo quiero eso, respóndeme si sí o no, o si toca hacer mejoras o modificaciones a la función de los círculos, solamente la función de los círculos.",
+    "date": "2026-03-03",
+    "time": "11:04 AM"
+  },
+  {
+    "text": "El siguiente arreglo. El siguiente arreglo, si te das cuenta, te coloco en la imagen dos líneas verdes horizontales, señalizándote dónde debe estar el círculo situado, porque si te das cuenta, el círculo está mucho más abajo. \n\nEntonces, para que no exista este problema, haz el círculo más grande, del mismo tamaño que el texto, para que quede realmente centrado y no se vea ese error visual que existe actualmente con los círculos. Haz los círculos del mismo tamaño que el texto y así evitamos que, si lo bajas, quede hacia abajo, o si lo subes un poquito, quede hacia arriba. \n\nEntonces, agranda un poquito el círculo para que quede del mismo tamaño y centrado con respecto a los textos.",
+    "date": "2026-03-03",
+    "time": "10:58 AM"
+  },
+  {
+    "text": "Vale, vamos a ver modificaciones. Te coloco en la imagen una señalización, una línea vertical de color amarillo, insinuando el espacio entre las visualizaciones superiores con respecto a la visualización de los modelos. Ese espacio debe ser similar e igual al del espacio que te señalo con una línea roja de color horizontal. Debe ser el mismo espacio.\n\nDos, dentro de la parte de los modelos, no está centrado el texto ni los círculos en la casilla. Si te das cuenta, hay más espacio en la parte superior que en la parte inferior, hablando solamente de la visualización de los modelos. Lo mismo sucede con los círculos: los círculos no están centrados con respecto al texto; los círculos están hacia la parte superior del inicio del texto. Debe estar centrado todo.",
+    "date": "2026-03-03",
+    "time": "10:50 AM"
+  },
+  {
+    "text": "¿Aprendiste bien lo del cuadrado que toca hacer con el fondo gris y los bordes redondeados? Eso está bien, pero no es que sea uno por cada modelo, sino que estén todos ahí abarcados dentro de un solo cuadrado. ¿Sí? \n\nTodos en el mismo cuadrado de manera horizontal, que ocupe la misma longitud de los dos cuadrados de la parte superior, de dónde están las visualizaciones. Me hago entender.\n\nY otra petición: bájale un punto al tamaño del texto de los modelos. Hazlo un poquito, solo un poquito más pequeño el texto.",
+    "date": "2026-03-03",
+    "time": "10:45 AM"
   },
   {
     "text": "Gracias.",
     "date": "2026-03-03",
-    "time": "12:00 AM"
-  },
-  {
-    "text": "explicó.",
-    "date": "2026-03-02",
-    "time": "11:56 PM"
+    "time": "10:44 AM"
   },
   {
     "text": "Gracias.",
-    "date": "2026-03-02",
-    "time": "11:56 PM"
+    "date": "2026-03-03",
+    "time": "10:44 AM"
   },
   {
     "text": "Gracias.",
-    "date": "2026-03-02",
-    "time": "11:53 PM"
+    "date": "2026-03-03",
+    "time": "10:43 AM"
   },
   {
     "text": "Gracias.",
-    "date": "2026-03-02",
-    "time": "11:53 PM"
-  },
-  {
-    "text": "¿Crees que teniendo solamente dos API Keys con cuenta diferente es más que suficiente?",
-    "date": "2026-03-02",
-    "time": "11:51 PM"
+    "date": "2026-03-03",
+    "time": "10:43 AM"
   },
   {
     "text": "Gracias.",
-    "date": "2026-03-02",
-    "time": "11:47 PM"
+    "date": "2026-03-03",
+    "time": "10:43 AM"
   },
   {
-    "text": "Hola, hola, hola",
-    "date": "2026-03-02",
-    "time": "11:43 PM"
+    "text": "Gracias.",
+    "date": "2026-03-03",
+    "time": "10:43 AM"
   },
   {
-    "text": "Hola, hola, hola, hola.",
-    "date": "2026-03-02",
-    "time": "11:42 PM"
+    "text": "Gracias.",
+    "date": "2026-03-03",
+    "time": "10:43 AM"
   },
   {
-    "text": "Hola, hola, hola.",
-    "date": "2026-03-02",
-    "time": "11:41 PM"
+    "text": "Me quedé.",
+    "date": "2026-03-03",
+    "time": "10:43 AM"
   },
   {
-    "text": "Hola, hola.",
-    "date": "2026-03-02",
-    "time": "11:41 PM"
+    "text": "Gracias.",
+    "date": "2026-03-03",
+    "time": "10:43 AM"
   },
   {
-    "text": "<dictado>\nGracias.\n</dictado>",
-    "date": "2026-03-02",
-    "time": "11:40 PM"
-  },
-  {
-    "text": "Hola, Jiménez, quería saber si te encuentras bien. Por favor, mamá. ¿Y realmente te encuentras bien?",
-    "date": "2026-03-02",
-    "time": "11:37 PM"
-  },
-  {
-    "text": "Hola, buenos días. Por favor, envíen el proceso el martes por la mañana. Gracias.",
-    "date": "2026-03-02",
-    "time": "11:37 PM"
-  },
-  {
-    "text": "<dictado>\nHola, buenos días. Por favor, compren lo siguiente:\n- Huevos\n- Carne\n- Pan\n- Papas\n- Yuca\n- Plátano\n- Arroz\n</dictado>",
-    "date": "2026-03-02",
-    "time": "11:37 PM"
-  },
-  {
-    "text": "Hola, buenos días. Espero que todo esté bien. Por favor, llámeme cuando esté el resultado. Gracias.",
-    "date": "2026-03-02",
-    "time": "11:36 PM"
-  },
-  {
-    "text": "<dictado>\nEn la imagen te coloco el resultado. Funcionó. Puedes ver los logs de los últimos dictados que hice, el de las 11.29 y el de las 11.31 de la noche. Funciona. Primero revisó el de 70 bytes y no funcionó. Y después está utilizando solamente el de 8 billones de parámetros. El tema con el de 8 billones de parámetros y eso es lo que me da miedo Es que está colocando en las respuestas la parte en que tú colocaste lo de dictado No sé si eso se pueda mejorar Obviamente como no es tan inteligente pues está colocando ese parámetro Pero pues funcionó lo que hiciste\n\n**Texto ajustado:**\n\nEn la imagen te coloco el resultado. Funcionó. Puedes ver los logs de los últimos dictados que hice, el de las 11:29 y el de las 11:31 de la noche. Funciona. Primero revisé el de 70 bytes y no funcionó. Y después está utilizando solamente el de 8 billones de parámetros. El tema con el de 8 billones de parámetros y eso es lo que me da miedo. Es que está colocando en las respuestas la parte en que tú colocaste lo de dictado. No sé si eso se pueda mejorar. Obviamente, como no es tan inteligente, pues está colocando ese parámetro. Pero pues funcionó lo que hiciste.\n\n**Cambios realizados:**\n\n- Corregí la capitalización y puntuación.\n- Añadí tildes y signos de interrogación/exclamación correctos.\n- Eliminé tartamudeos y repeticiones involuntarias.\n- Conviertí números explícitos a su formato numérico estándar.\n- Capitalicé correctamente nombres propios y acrónimos.\n- Mantuve el registro y tono original.\n- No hice cambios en el contenido.\n- Dividí oraciones largas para mejorar legibilidad.\n- Añadí saltos de línea para mejorar la lectura.\n- No hice cambios en el formato original.",
-    "date": "2026-03-02",
-    "time": "11:33 PM"
-  },
-  {
-    "text": "<dictado>\nQuiero que hagan lo siguiente, por favor. Llámenme y cuéntenme qué ha pasado.\n</dictado>",
-    "date": "2026-03-02",
-    "time": "11:32 PM"
-  },
-  {
-    "text": "<dictado>\nQuiero que compren los siguientes productos: \n- huevos\n- carne\n- pan\n- papas.\n</dictado>",
-    "date": "2026-03-02",
-    "time": "11:31 PM"
-  },
-  {
-    "text": "Hola, buenos días. Espero que todo esté bien. Por favor, llámenme cuando tengan algún resultado. Gracias.",
-    "date": "2026-03-02",
-    "time": "11:31 PM"
-  },
-  {
-    "text": "Entonces quiero que hagamos algo. Quiero que implementes lo que habías dicho anteriormente. Exactamente la parte de que utilicemos como primera opción Llama 3.3 de 70 billones. Si no se puede porque se alcanzó el límite, entonces utilicemos llama 3.1 de 8 billones. Y si no se puede, entonces coloquemos otra opción como descarte cuando alcance el límite de llama 3.1 de 8 billones. O sea que hayan tres opciones, que matemos las tres opciones. La primera siempre como opción, si no, pues entonces utilicemos la segunda y si no, utilizamos la tercera ya como última opción.",
-    "date": "2026-03-02",
-    "time": "11:29 PM"
-  },
-  {
-    "text": "Ok, entiendo tu pregunta. La siguiente pregunta, y todavía no implementes nada, es el límite cuando yo lo alcanzo se regenera automáticamente y si es así, ¿cuánto tiempo se vuelve a regenerar ese límite para yo volverlo a utilizar? la siguiente pregunta es con el modelo llama 3.1 de 8 v instance es suficiente para que haga un buen trabajo con lo que hicimos nosotros de las reglas y lo de smart formatting es suficiente ese modelo sí o no y por qué",
-    "date": "2026-03-02",
-    "time": "11:26 PM"
-  },
-  {
-    "text": "Ok, entonces se implementará ese plan.",
-    "date": "2026-03-02",
-    "time": "11:25 PM"
-  },
-  {
-    "text": "Ah, ya vi el problema. Lo que pasa es que alcancé, excedí el límite de ese modelo. Entonces, ¿qué otro modelo podremos utilizar para que haga ese proceso? Te hago una pregunta, todavía no implementes nada. podríamos tener más de dos o más de una opción para que se utilice un modelo diferente en el tema del proceso no en lo de WhisperLash sino en lo del proceso para lo de gramática y demás o sea que cuando se alcance el límite de YAMA 3.3 se utilice otro modelo y se puede hacer eso utilizando la misma API aquí o no. Responde antes de implementar algo. No tienes permiso a implementar nada hasta que no me respondas las dudas.",
-    "date": "2026-03-02",
-    "time": "11:22 PM"
-  },
-  {
-    "text": "Mira, te muestro la prueba de que realmente no se está haciendo el proceso de Yama 3.3 cuando hago el dictado. Si esta imagen que te estoy colocando son los logs de la API Key de Grok y si te das cuenta solamente se está utilizando el modelo Wish Per Large B3 que es la del dictado pero no se está utilizando lo de Yama 3.3. 3 no hay toques de input y no hay toques de output algo está fallando revisa",
-    "date": "2026-03-02",
-    "time": "11:20 PM"
-  },
-  {
-    "text": "No, volví a no aceptar los cambios que hiciste. Sabes que es lo que estoy notando es que pareciese que no está siguiendo el proceso de que pase el texto a Llama 3. parece que solamente está votándome el resultado de lo que se hace con Wish Perlash versión 3 pero no está haciendo el proceso de Llama 3 para que siga las reglas y el de Smart Formatting revisa si está bien esa parte, si realmente se está aplicando ese proceso después de que yo pare de grabar el dictado de si se está haciendo la la sección de llama 3",
-    "date": "2026-03-02",
-    "time": "11:17 PM"
-  },
-  {
-    "text": "Vamos a hacer la siguiente lista de compras. Zapatos, camisas, sombrero y joyas.",
-    "date": "2026-03-02",
-    "time": "11:16 PM"
-  },
-  {
-    "text": "Hola, espero estés bien, cuéntame cómo quedó, voy a comprar huevos, leche y pan.",
-    "date": "2026-03-02",
-    "time": "11:16 PM"
-  },
-  {
-    "text": "Hola, hola, hola.",
-    "date": "2026-03-02",
-    "time": "11:16 PM"
-  },
-  {
-    "text": "Me eliminaste muchas reglas y no me gusta. Igualmente lo intenté con las reglas que habías colocado y tampoco funciona. El Smart Formatting no funciona, se saltan reglas igualmente. Así que lo que hice fue no aceptar los cambios que habías hecho. revisa de otra manera porque no está funcionando qué es lo que pasa porque no funciona el Smart Formatting porque no está siguiendo la mayoría de reglas que tiene como obligatorias qué es lo que está pasando hay algo que no lo está dejando funcionar hay una frase específica que no deja colocar o que el ELM no siga las reglas Revisa de alguna manera Y arreglalo",
-    "date": "2026-03-02",
-    "time": "11:13 PM"
-  },
-  {
-    "text": "Ve a comprar lo siguiente, pan, leche, huevos y tostadas.",
-    "date": "2026-03-02",
-    "time": "11:12 PM"
-  },
-  {
-    "text": "Voy a comprar lo siguiente, pan, leche, huevos y tostadas.",
-    "date": "2026-03-02",
-    "time": "11:12 PM"
-  },
-  {
-    "text": "Hola, hola, hola. Espero que todo esté bien. Recuerden que todo se debe hacer muy bien.",
-    "date": "2026-03-02",
-    "time": "11:11 PM"
-  },
-  {
-    "text": "Hola, hola, hola, espero que todo esté bien lunes, martes, miércoles, jueves, viernes, sábado y domingo todo se hará muy bien, gracias",
-    "date": "2026-03-02",
-    "time": "11:11 PM"
-  },
-  {
-    "text": "Todo lo que quiero que hagas y lo único que quiero que hagas es lo siguiente, ve a la oficina, saca los papeles, recoge el carro, llévalo al centro comercial, almuerza, claro está, y después compra el marketing que ya habíamos hecho, devuélvete a la oficina después, haz el correo y cuando esté eso listo me marcas.",
-    "date": "2026-03-02",
-    "time": "11:10 PM"
-  },
-  {
-    "text": "Hola, ¿cómo estás? Espero que estés bien.",
-    "date": "2026-03-02",
-    "time": "11:10 PM"
-  },
-  {
-    "text": "Quiero que revises algo con respecto a la parte del proceso que se hace con el LLM Llama 3, porque primero nos están siguiendo todas las reglas, todas las 20 reglas que habíamos construido en el System Prom, y tampoco está aplicando el formateo inteligente, lo de listas y puntuación no lo está aplicando. Revisa para que estrictamente se cumplan las reglas y la aplicación de formateo inteligente, ok.",
-    "date": "2026-03-02",
-    "time": "11:07 PM"
-  },
-  {
-    "text": "quiero que vayas a comprar lo siguiente huevos leche pasta pan tomate cebolla y pan",
-    "date": "2026-03-02",
-    "time": "11:06 PM"
-  },
-  {
-    "text": "quiero que vayas a comprar lo siguiente huevos leche pasta pan tomate cebolla y nada más",
-    "date": "2026-03-02",
-    "time": "11:05 PM"
-  },
-  {
-    "text": "Por favor, voy a comprar lo siguiente. Huevos, leche, pasta, pan, tomate, cebolla y nada más.",
-    "date": "2026-03-02",
-    "time": "11:04 PM"
-  },
-  {
-    "text": "Por favor, ve a comprar lo siguiente. Huevos, leche, pasta, pan, tomate, cebolla y nada más.",
-    "date": "2026-03-02",
-    "time": "11:03 PM"
-  },
-  {
-    "text": "Listo, quedó perfecto. Con esto culminamos la fase 9, así que por favor todas las implementaciones que decimos en esta fase, pásalas a la rama principal. Cuando te asegures que estén todas las implementaciones que hicimos de la rama fase 9 a la rama fase principal, haz el commit con v9 y colocar el nombre que corresponde y cuando hagas eso pues entonces se elimina la rama fase 9",
-    "date": "2026-03-02",
-    "time": "11:02 PM"
-  },
-  {
-    "text": "Hola, hola.",
-    "date": "2026-03-02",
-    "time": "11:02 PM"
-  },
-  {
-    "text": "Bien, ¿y tú qué tal todo?",
-    "date": "2026-03-02",
-    "time": "10:59 PM"
-  },
-  {
-    "text": "Hola, ¿cómo estás?",
-    "date": "2026-03-02",
-    "time": "10:59 PM"
-  },
-  {
-    "text": "Listo, perfecto, ya no toques más la configuración general, ya quedó bien, gracias por los cambios. Ahora vamos con un detalle mínimo, pero que realmente los pequeños detalles cuentas. Si te das cuenta, te adjunto una imagen, en la racha diaria, en el contador, hay un pequeño error, no es tan grave. Que es que cuando tú colocas un día, debería decir un día, no un días. Y para el resto de números, si es plural, ahí sí se coloca días. Entonces arregla esa parte porque cuando es uno, es un día, no lleva la S. Y cuando es más de uno, siempre lleva la S. ¿Cómo es que te lo pones en el?",
-    "date": "2026-03-02",
-    "time": "10:59 PM"
-  },
-  {
-    "text": "Hola.",
-    "date": "2026-03-02",
-    "time": "10:56 PM"
+    "text": "Listo, está bien. El tamaño quedó bien, los círculos están bien, pero ahora decido colocar fondo a esa parte. Igual que en las visualizaciones, que sean del mismo color, que sean cuadraditos con el mismo espacio. ¿Dime si entiendes antes de implementar?",
+    "date": "2026-03-03",
+    "time": "10:42 AM"
   }
 ]

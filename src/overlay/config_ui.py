@@ -172,40 +172,69 @@ class ControlPanelWindow(QWidget):
             except:
                 pass
                 
-        def create_monitor_card():
-            card = QFrame()
-            card.setStyleSheet("QFrame { background-color: #383838; border-radius: 8px; }")
-            c_layout = QVBoxLayout(card)
-            c_layout.setContentsMargins(15, 8, 15, 8)
-            c_layout.setSpacing(2)
-            
-            lbl_title = QLabel("IAs ACTIVAS")
-            lbl_title.setStyleSheet("font-size: 10px; font-weight: bold; color: #FFBA00; letter-spacing: 1px; background: transparent;")
-            c_layout.addWidget(lbl_title)
-            
-            w_key = os.environ.get("VEXTO_WHISPER_KEY", "1")
-            l_key = os.environ.get("VEXTO_LLAMA_KEY", "1")
-            
-            self.lbl_w1 = QLabel("🎙️ Whisper (L1): " + ("🟢 En Uso" if w_key == "1" else "🔴 Límite Alcanzado" if w_key != "1" else "⚪ En Espera"))
-            self.lbl_w2 = QLabel("🎙️ Whisper (L2): " + ("🟢 En Uso" if w_key == "2" else "⚪ En Espera"))
-            self.lbl_l1 = QLabel("🧠 Llama 70B (L1): " + ("🟢 En Uso" if l_key == "1" else "🔴 Límite Alcanzado" if l_key != "1" else "⚪ En Espera"))
-            self.lbl_l2 = QLabel("🧠 Llama 70B (L2): " + ("🟢 En Uso" if l_key == "2" else "⚪ En Espera"))
-            
-            for lbl in [self.lbl_w1, self.lbl_w2, self.lbl_l1, self.lbl_l2]:
-                lbl.setStyleSheet("font-size: 9px; color: #E5E4E2; background: transparent; font-weight: bold;")
-                c_layout.addWidget(lbl)
-                
-            return card
+        def get_time_saved_str(words):
+            minutes = max(0.0, (words / 40.0) - (words / 150.0))
+            if minutes < 60:
+                return f"{int(minutes)} min"
+            else:
+                return f"{minutes/60:.1f} hrs"
                 
         self.card_streak, self.lbl_streak, _ = create_stat_card("Racha Diaria", f"{self.daily_streak} día{'s' if self.daily_streak != 1 else ''} 🔥", "¡Sigue así!", "#FFBA00")
-        self.card_monitor = create_monitor_card()
+        self.card_time, self.lbl_time, _ = create_stat_card("Tiempo Ahorrado", get_time_saved_str(self.dictated_words), "Neto vs Manual")
         self.card_words, self.lbl_words, _ = create_stat_card("Palabras", f"{self.dictated_words:,}", "Dictadas en total")
         self.card_dicts, self.lbl_dicts, _ = create_stat_card("Dictados", f"{self.total_dictations:,}", "Disparos totales")
         
         dashboard_layout.addWidget(self.card_streak, 0, 0)
-        dashboard_layout.addWidget(self.card_monitor, 0, 1)
+        dashboard_layout.addWidget(self.card_time, 0, 1)
         dashboard_layout.addWidget(self.card_words, 1, 0)
         dashboard_layout.addWidget(self.card_dicts, 1, 1)
+        
+        # --- HORIZONTAL AI MONITOR ---
+        self.monitor_card = QFrame()
+        self.monitor_card.setStyleSheet("QFrame { background-color: #383838; border-radius: 8px; }")
+        
+        self.monitor_layout = QHBoxLayout(self.monitor_card)
+        self.monitor_layout.setContentsMargins(15, 8, 15, 8)
+        self.monitor_layout.setSpacing(15)
+        self.monitor_layout.addStretch()
+        
+        def update_dot_color(lbl, target_num, current_key):
+            color = "#FFBA00" if current_key == target_num else "#D32F2F" if (target_num == "1" and current_key in ["2", "ERROR"]) or current_key == "ERROR" else "#E5E4E2"
+            lbl.setStyleSheet(f"font-size: 16px; background: transparent; color: {color};")
+            
+        def create_indicator(text):
+            h_layout = QHBoxLayout()
+            h_layout.setSpacing(4)
+            h_layout.setContentsMargins(0, 0, 0, 0)
+            
+            lbl_txt = QLabel(text)
+            lbl_txt.setStyleSheet("font-size: 13px; color: #E5E4E2; background: transparent; font-weight: bold;")
+            lbl_txt.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight)
+            
+            lbl_dot = QLabel("●")
+            lbl_dot.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
+            
+            h_layout.addWidget(lbl_txt)
+            h_layout.addWidget(lbl_dot)
+            self.monitor_layout.addLayout(h_layout)
+            return lbl_dot
+            
+        self.dot_w1 = create_indicator("Whisper (L1)")
+        self.dot_w2 = create_indicator("Whisper (L2)")
+        self.dot_l1 = create_indicator("Llama 70B (L1)")
+        self.dot_l2 = create_indicator("Llama 70B (L2)")
+        
+        w_key = os.environ.get("VEXTO_WHISPER_KEY", "1")
+        l_key = os.environ.get("VEXTO_LLAMA_KEY", "1")
+        update_dot_color(self.dot_w1, "1", w_key)
+        update_dot_color(self.dot_w2, "2", w_key)
+        update_dot_color(self.dot_l1, "1", l_key)
+        update_dot_color(self.dot_l2, "2", l_key)
+        
+        self.monitor_layout.addStretch()
+        
+        # Insertar exactamente en el Grid superior (fila 2, col 0, span_row 1, span_col 2) para mismas márgenes
+        dashboard_layout.addWidget(self.monitor_card, 2, 0, 1, 2)
         
         main_layout.addLayout(dashboard_layout)
         
@@ -435,55 +464,64 @@ class ControlPanelWindow(QWidget):
 
     def on_new_dictation(self, text):
         """Called automatically via signal when a new dictation finishes"""
-        self.history_manager.add_entry(text)
-        self.refresh_history_ui()
-        
-        # Update dashboard metrics
-        words_in_text = len(text.split())
-        self.total_dictations += 1
-        
-        today_idx = datetime.now().date()
-        today_str = datetime.now().strftime("%Y-%m-%d")
-        
-        if self.last_dictation_date != today_str:
-            if self.last_dictation_date:
-                try:
-                    last_dt = datetime.strptime(self.last_dictation_date, "%Y-%m-%d").date()
-                    diff = (today_idx - last_dt).days
-                    if diff == 1:
-                        self.daily_streak += 1
-                    elif diff > 1:
+        if text.strip():
+            self.history_manager.add_entry(text)
+            self.refresh_history_ui()
+            
+            # Update dashboard metrics
+            words_in_text = len(text.split())
+            self.total_dictations += 1
+            
+            today_idx = datetime.now().date()
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            
+            if self.last_dictation_date != today_str:
+                if self.last_dictation_date:
+                    try:
+                        last_dt = datetime.strptime(self.last_dictation_date, "%Y-%m-%d").date()
+                        diff = (today_idx - last_dt).days
+                        if diff == 1:
+                            self.daily_streak += 1
+                        elif diff > 1:
+                            self.daily_streak = 1
+                    except:
                         self.daily_streak = 1
-                except:
+                else:
                     self.daily_streak = 1
-            else:
-                self.daily_streak = 1
+                    
+                self.last_dictation_date = today_str
+                set_key(self.env_path, "LAST_DICTATION_DATE", self.last_dictation_date)
+                os.environ["LAST_DICTATION_DATE"] = self.last_dictation_date
+                set_key(self.env_path, "DAILY_STREAK", str(self.daily_streak))
+                os.environ["DAILY_STREAK"] = str(self.daily_streak)
                 
-            self.last_dictation_date = today_str
-            set_key(self.env_path, "LAST_DICTATION_DATE", self.last_dictation_date)
-            os.environ["LAST_DICTATION_DATE"] = self.last_dictation_date
-            set_key(self.env_path, "DAILY_STREAK", str(self.daily_streak))
-            os.environ["DAILY_STREAK"] = str(self.daily_streak)
+            if words_in_text > 0:
+                self.dictated_words += words_in_text
+                set_key(self.env_path, "DICTATED_WORDS", str(self.dictated_words))
+                os.environ["DICTATED_WORDS"] = str(self.dictated_words)
+                
+            set_key(self.env_path, "TOTAL_DICTATIONS", str(self.total_dictations))
+            os.environ["TOTAL_DICTATIONS"] = str(self.total_dictations)
             
-        if words_in_text > 0:
-            self.dictated_words += words_in_text
-            set_key(self.env_path, "DICTATED_WORDS", str(self.dictated_words))
-            os.environ["DICTATED_WORDS"] = str(self.dictated_words)
+            # Update labels visually
+            self.lbl_streak.setText(f"{self.daily_streak} día{'s' if self.daily_streak != 1 else ''} 🔥")
             
-        set_key(self.env_path, "TOTAL_DICTATIONS", str(self.total_dictations))
-        os.environ["TOTAL_DICTATIONS"] = str(self.total_dictations)
-        
-        # Update labels visually
-        self.lbl_streak.setText(f"{self.daily_streak} día{'s' if self.daily_streak != 1 else ''} 🔥")
+            minutes = max(0.0, (self.dictated_words / 40.0) - (self.dictated_words / 150.0))
+            time_str = f"{int(minutes)} min" if minutes < 60 else f"{minutes/60:.1f} hrs"
+            self.lbl_time.setText(time_str)
+            self.lbl_words.setText(f"{self.dictated_words:,}")
         
         w_key = os.environ.get("VEXTO_WHISPER_KEY", "1")
         l_key = os.environ.get("VEXTO_LLAMA_KEY", "1")
-        self.lbl_w1.setText("🎙️ Whisper (L1): " + ("🟢 En Uso" if w_key == "1" else "🔴 Límite Alcanzado" if w_key != "1" else "⚪ En Espera"))
-        self.lbl_w2.setText("🎙️ Whisper (L2): " + ("🟢 En Uso" if w_key == "2" else "⚪ En Espera"))
-        self.lbl_l1.setText("🧠 Llama 70B (L1): " + ("🟢 En Uso" if l_key == "1" else "🔴 Límite Alcanzado" if l_key != "1" else "⚪ En Espera"))
-        self.lbl_l2.setText("🧠 Llama 70B (L2): " + ("🟢 En Uso" if l_key == "2" else "⚪ En Espera"))
         
-        self.lbl_words.setText(f"{self.dictated_words:,}")
+        def update_dot_color(lbl, target_num, current_key):
+            color = "#FFBA00" if current_key == target_num else "#D32F2F" if (target_num == "1" and current_key in ["2", "ERROR"]) or current_key == "ERROR" else "#E5E4E2"
+            lbl.setStyleSheet(f"font-size: 16px; background: transparent; color: {color};")
+            
+        update_dot_color(self.dot_w1, "1", w_key)
+        update_dot_color(self.dot_w2, "2", w_key)
+        update_dot_color(self.dot_l1, "1", l_key)
+        update_dot_color(self.dot_l2, "2", l_key)
         self.lbl_dicts.setText(f"{self.total_dictations:,}")
 
     def refresh_history_ui(self):
@@ -589,6 +627,7 @@ class ControlPanelWindow(QWidget):
             self.last_dictation_date = ""
             
             self.lbl_streak.setText("0 días 🔥")
+            self.lbl_time.setText("0 min")
             self.lbl_words.setText("0")
             self.lbl_dicts.setText("0")
             

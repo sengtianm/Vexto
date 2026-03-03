@@ -64,6 +64,10 @@ def start_background_services(history_callback=None):
                     # Log to history via callback to keep thread safety
                     if history_callback:
                         history_callback(final_text)
+                else:
+                    # Garantizar que la UI se entere del fallo total (Monitor en Rojo)
+                    if history_callback:
+                        history_callback("")
                         
                 try:
                     os.remove(wav_path)
