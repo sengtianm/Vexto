@@ -7,7 +7,7 @@ from dotenv import load_dotenv, set_key
 from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QVBoxLayout, 
                              QHBoxLayout, QLineEdit, QPushButton, QMessageBox,
                              QScrollArea, QFrame, QTextEdit, QInputDialog, QComboBox, QCheckBox,
-                             QSystemTrayIcon, QMenu, QStyle)
+                             QSystemTrayIcon, QMenu, QStyle, QGridLayout)
 from PyQt6.QtGui import QIcon, QAction, QPixmap
 from PyQt6.QtCore import Qt, pyqtSignal
 
@@ -85,8 +85,9 @@ class ControlPanelWindow(QWidget):
 
     def init_ui(self):
         self.setWindowTitle("Vexto - Panel de Control")
-        self.setMinimumSize(480, 550)
-        self.resize(500, 650)
+        # Diseño base cuadrado (Square UI), desbloqueando el límite vertical para manipulación del usuario
+        self.setMinimumSize(540, 460)
+        self.resize(560, 580)
         
         # Estilo Global Premium Oscuro
         self.setStyleSheet("""
@@ -109,35 +110,92 @@ class ControlPanelWindow(QWidget):
         
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(35, 35, 35, 35)
-        main_layout.setSpacing(25)
+        main_layout.setSpacing(12)
         
         # --- HEADER ---
         header_layout = QHBoxLayout()
         header_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         header_layout.setContentsMargins(4, 0, 0, 0)
-        header_layout.setSpacing(15)
-        
-        logo = QLabel()
-        icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "logo3.svg")
-        pixmap = QPixmap(icon_path)
-        if not pixmap.isNull():
-            logo.setPixmap(pixmap.scaled(48, 48, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
         
         title = QLabel("Vexto")
         title.setStyleSheet("font-size: 42px; font-weight: 900; font-family: 'Segoe UI Black', Arial, sans-serif; color: #E5E4E2; letter-spacing: 2px;")
         
         # Align left dynamically
-        header_layout.addWidget(logo)
         header_layout.addWidget(title)
         header_layout.addStretch()
         
         main_layout.addLayout(header_layout)
         
+        # --- DASHBOARD (Grid 2x2) ---
+        dashboard_layout = QGridLayout()
+        dashboard_layout.setSpacing(8)
+        dashboard_layout.setContentsMargins(0, 0, 0, 10)
+        
+        def create_stat_card(title, value, subtitle, val_color="#E5E4E2"):
+            card = QFrame()
+            card.setStyleSheet("QFrame { background-color: #383838; border-radius: 8px; }")
+            c_layout = QVBoxLayout(card)
+            c_layout.setContentsMargins(15, 12, 15, 12)
+            c_layout.setSpacing(2)
+            
+            lbl_title = QLabel(title.upper())
+            lbl_title.setStyleSheet("font-size: 10px; font-weight: bold; color: #E5E4E2; letter-spacing: 1px; opacity: 0.6; background: transparent;")
+            
+            lbl_val = QLabel(value)
+            lbl_val.setStyleSheet(f"font-size: 20px; font-weight: 900; color: {val_color}; background: transparent; border: none;")
+            
+            lbl_sub = QLabel(subtitle)
+            lbl_sub.setWordWrap(True)
+            lbl_sub.setStyleSheet("font-size: 11px; color: #E5E4E2; opacity: 0.5; background: transparent;")
+            
+            c_layout.addWidget(lbl_title)
+            c_layout.addWidget(lbl_val)
+            c_layout.addWidget(lbl_sub)
+            return card, lbl_val, lbl_sub
+            
+        self.dictated_words = int(os.getenv("DICTATED_WORDS", "0"))
+        self.total_dictations = int(os.getenv("TOTAL_DICTATIONS", "0"))
+        self.daily_streak = int(os.getenv("DAILY_STREAK", "0"))
+        self.last_dictation_date = os.getenv("LAST_DICTATION_DATE", "")
+        
+        # Check streak on load
+        today_date_str = datetime.now().strftime("%Y-%m-%d")
+        if self.last_dictation_date:
+            try:
+                last_dt = datetime.strptime(self.last_dictation_date, "%Y-%m-%d").date()
+                today_dt = datetime.now().date()
+                diff = (today_dt - last_dt).days
+                if diff > 1:
+                    self.daily_streak = 0
+                    set_key(self.env_path, "DAILY_STREAK", "0")
+                    os.environ["DAILY_STREAK"] = "0"
+            except:
+                pass
+                
+        def get_time_saved_str(words):
+            minutes = words / 40.0
+            if minutes < 60:
+                return f"{int(minutes)} min"
+            else:
+                return f"{minutes/60:.1f} hrs"
+                
+        self.card_streak, self.lbl_streak, _ = create_stat_card("Racha Diaria", f"{self.daily_streak} día{'s' if self.daily_streak != 1 else ''} 🔥", "¡Sigue así!", "#FFBA00")
+        self.card_time, self.lbl_time, _ = create_stat_card("Tiempo Ahorrado", get_time_saved_str(self.dictated_words), "A 40 palabras/min")
+        self.card_words, self.lbl_words, _ = create_stat_card("Palabras", f"{self.dictated_words:,}", "Dictadas en total")
+        self.card_dicts, self.lbl_dicts, _ = create_stat_card("Dictados", f"{self.total_dictations:,}", "Disparos totales")
+        
+        dashboard_layout.addWidget(self.card_streak, 0, 0)
+        dashboard_layout.addWidget(self.card_time, 0, 1)
+        dashboard_layout.addWidget(self.card_words, 1, 0)
+        dashboard_layout.addWidget(self.card_dicts, 1, 1)
+        
+        main_layout.addLayout(dashboard_layout)
+        
         # --- CONFIGURATION SECTION ---
         config_header_layout = QHBoxLayout()
         config_header_layout.setContentsMargins(4, 0, 4, 0)
         
-        self.config_title_btn = QPushButton("▼ Configuración General")
+        self.config_title_btn = QPushButton("▶ Configuración General")
         self.config_title_btn.setStyleSheet("font-size: 14px; font-weight: bold; color: #E5E4E2; background: transparent; text-align: left; text-transform: uppercase; letter-spacing: 1.5px; border: none; padding: 0;")
         self.config_title_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.config_title_btn.clicked.connect(self.toggle_config_section)
@@ -149,7 +207,8 @@ class ControlPanelWindow(QWidget):
         
         self.config_frame = QFrame()
         config_frame = self.config_frame
-        config_frame.setStyleSheet("QFrame { background-color: #555555; border: none; border-radius: 12px; }")
+        config_frame.setObjectName("ConfigFrame")
+        config_frame.setStyleSheet("#ConfigFrame { background-color: #383838; border: none; border-radius: 12px; }")
         config_layout = QVBoxLayout(config_frame)
         config_layout.setContentsMargins(20, 24, 20, 24)
         config_layout.setSpacing(16)
@@ -181,7 +240,8 @@ class ControlPanelWindow(QWidget):
         mic_label.setFixedWidth(115)
         self.mic_combo = QComboBox()
         self.mic_combo.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.mic_combo.setFixedWidth(270)
+        self.mic_combo.setFixedWidth(330)
+        self.mic_combo.setStyleSheet("QComboBox { background-color: #242124; border: none; border-radius: 6px; padding: 10px 14px; color: #E5E4E2; font-size: 14px; } QComboBox::drop-down { border: none; width: 30px; } QComboBox::down-arrow { image: none; } QComboBox QAbstractItemView { background-color: #242124; border: 1px solid #555555; selection-background-color: #555555; selection-color: #FFBA00; color: #E5E4E2; border-radius: 6px; padding: 6px; outline: none; }")
         self.mic_combo.wheelEvent = lambda event: event.ignore()
         
         # Populate Mics
@@ -216,7 +276,8 @@ class ControlPanelWindow(QWidget):
         lang_label.setFixedWidth(115)
         self.lang_combo = QComboBox()
         self.lang_combo.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.lang_combo.setFixedWidth(270)
+        self.lang_combo.setFixedWidth(330)
+        self.lang_combo.setStyleSheet("QComboBox { background-color: #242124; border: none; border-radius: 6px; padding: 10px 14px; color: #E5E4E2; font-size: 14px; } QComboBox::drop-down { border: none; width: 30px; } QComboBox::down-arrow { image: none; } QComboBox QAbstractItemView { background-color: #242124; border: 1px solid #555555; selection-background-color: #555555; selection-color: #FFBA00; color: #E5E4E2; border-radius: 6px; padding: 6px; outline: none; }")
         self.lang_combo.wheelEvent = lambda event: event.ignore()
         
         self.lang_combo.addItem("Español", "es")
@@ -275,10 +336,16 @@ class ControlPanelWindow(QWidget):
         # Settings are now managed exclusively in .env file
         
         main_layout.addWidget(config_frame)
+        self.config_frame.setVisible(False)
+
+        # --- COMPORTAMIENTO DINÁMICO DE ALTURA ---
+        # Cuando se despliega o colapsa el layout, forzamos a Qt a recalcular 
+        # sin estirar agresivamente los espacios vacíos
+        main_layout.addStretch()
 
         # --- HISTORY SECTION ---
         hist_header_layout = QHBoxLayout()
-        hist_header_layout.setContentsMargins(4, 10, 4, 0)
+        hist_header_layout.setContentsMargins(4, 2, 4, 0)
         hist_title = QLabel("Historial de Actividad")
         hist_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #E5E4E2; background: transparent; text-transform: uppercase; letter-spacing: 1.5px;")
         hist_header_layout.addWidget(hist_title)
@@ -310,20 +377,93 @@ class ControlPanelWindow(QWidget):
         
         self.scroll_area.setWidget(self.history_container)
         hist_wrapper_layout.addWidget(self.scroll_area)
+        
+        # Ocupará un porcentaje relativo pero no forzará límites
+        self.scroll_area.setMinimumHeight(150)
+        
         main_layout.addLayout(hist_wrapper_layout)
 
         # Load initial history
         self.refresh_history_ui()
 
-        # --- FOOTER ---
-        # El cierre ahora se maneja nativamente mediante la "X" de la ventana.
+        # Master scroll area for the entire window
+        master_scroll = QScrollArea()
+        master_scroll.setWidgetResizable(True)
+        master_scroll.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
+        master_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         
-        self.setLayout(main_layout)
+        master_widget = QWidget()
+        master_widget.setStyleSheet("background-color: transparent;")
+        master_widget.setLayout(main_layout)
+        
+        master_scroll.setWidget(master_widget)
+        
+        root_layout = QVBoxLayout(self)
+        root_layout.setContentsMargins(0, 0, 0, 0)
+        root_layout.addWidget(master_scroll)
+        
+        # Ejecutar centrado inercial
+        self.center_window()
+        
+    def center_window(self):
+        # Mueve la interfaz al centro geométrico del monitor primario
+        try:
+            screen = QApplication.primaryScreen().availableGeometry().center()
+            frame_geometry = self.frameGeometry()
+            frame_geometry.moveCenter(screen)
+            self.move(frame_geometry.topLeft())
+        except:
+            pass
 
     def on_new_dictation(self, text):
         """Called automatically via signal when a new dictation finishes"""
         self.history_manager.add_entry(text)
         self.refresh_history_ui()
+        
+        # Update dashboard metrics
+        words_in_text = len(text.split())
+        self.total_dictations += 1
+        
+        today_idx = datetime.now().date()
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        
+        if self.last_dictation_date != today_str:
+            if self.last_dictation_date:
+                try:
+                    last_dt = datetime.strptime(self.last_dictation_date, "%Y-%m-%d").date()
+                    diff = (today_idx - last_dt).days
+                    if diff == 1:
+                        self.daily_streak += 1
+                    elif diff > 1:
+                        self.daily_streak = 1
+                except:
+                    self.daily_streak = 1
+            else:
+                self.daily_streak = 1
+                
+            self.last_dictation_date = today_str
+            set_key(self.env_path, "LAST_DICTATION_DATE", self.last_dictation_date)
+            os.environ["LAST_DICTATION_DATE"] = self.last_dictation_date
+            set_key(self.env_path, "DAILY_STREAK", str(self.daily_streak))
+            os.environ["DAILY_STREAK"] = str(self.daily_streak)
+            
+        if words_in_text > 0:
+            self.dictated_words += words_in_text
+            set_key(self.env_path, "DICTATED_WORDS", str(self.dictated_words))
+            os.environ["DICTATED_WORDS"] = str(self.dictated_words)
+            
+        set_key(self.env_path, "TOTAL_DICTATIONS", str(self.total_dictations))
+        os.environ["TOTAL_DICTATIONS"] = str(self.total_dictations)
+        
+        # Update labels visually
+        self.lbl_streak.setText(f"{self.daily_streak} día{'s' if self.daily_streak != 1 else ''} 🔥")
+        
+        minutes = self.dictated_words / 40.0
+        time_str = f"{int(minutes)} min" if minutes < 60 else f"{minutes/60:.1f} hrs"
+        self.lbl_time.setText(time_str)
+        
+        self.lbl_words.setText(f"{self.dictated_words:,}")
+        self.lbl_dicts.setText(f"{self.total_dictations:,}")
 
     def refresh_history_ui(self):
         """Clears and rebuilds the history list based on local file"""
@@ -415,11 +555,32 @@ class ControlPanelWindow(QWidget):
 
     def clear_history(self):
         reply = QMessageBox.question(self, "Limpiar Historial", 
-                                     "¿Estás seguro de que deseas borrar todos tus dictados guardados? Esta acción no se puede deshacer.",
+                                     "¿Estás seguro de que deseas borrar todos tus dictados guardados? Esta acción no se puede deshacer y tu contador global regresará a cero.",
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if reply == QMessageBox.StandardButton.Yes:
             self.history_manager.clear()
             self.refresh_history_ui()
+            
+            # Reset word counter and all dashboard metrics
+            self.dictated_words = 0
+            self.total_dictations = 0
+            self.daily_streak = 0
+            self.last_dictation_date = ""
+            
+            self.lbl_streak.setText("0 días 🔥")
+            self.lbl_time.setText("0 min")
+            self.lbl_words.setText("0")
+            self.lbl_dicts.setText("0")
+            
+            set_key(self.env_path, "DICTATED_WORDS", "0")
+            set_key(self.env_path, "TOTAL_DICTATIONS", "0")
+            set_key(self.env_path, "DAILY_STREAK", "0")
+            set_key(self.env_path, "LAST_DICTATION_DATE", "")
+            
+            os.environ["DICTATED_WORDS"] = "0"
+            os.environ["TOTAL_DICTATIONS"] = "0"
+            os.environ["DAILY_STREAK"] = "0"
+            os.environ["LAST_DICTATION_DATE"] = ""
 
 
 
@@ -554,7 +715,11 @@ class ControlPanelWindow(QWidget):
         print("Cerrando Vexto por completo...")
         if self.hotkey_manager:
             self.hotkey_manager.stop()
+        self.tray_icon.hide()
         QApplication.quit()
+        # Matamos abruptamente el proceso para evitar hilos zombis (Ej. del módulo keyboard)
+        import os
+        os._exit(0)
 
     def closeEvent(self, event):
         # En lugar de cerrar la app o los servicios, solo ocultamos la ventana visual
