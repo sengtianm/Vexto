@@ -1,92 +1,27 @@
 [
   {
-    "text": "Quiero que me escribas aquí exactamente todo el PROM que se manda al modelo Llama 3.3 de 70 billones. Todo el System PROM. Exacto como se envía cada vez que yo hago un dictado. No omitas nada. Por favor, quiero revisar exactamente el PROM para ver si yo lo puedo optimizar de alguna manera.",
+    "text": "Listo, entonces damos por cerrada esta fase. Por favor, pasa las implementaciones que hicimos en esta rama a la rama principal y a hacer cómic con V10 y los títulos correspondientes. Y cuando hagas eso, elimina la rama fase 10.",
     "date": "2026-03-03",
-    "time": "11:24 AM"
+    "time": "01:12 PM"
   },
   {
-    "text": "Haz la opción A, impléntalo.",
+    "text": "Listo, ya funciona bien. Ahora revisa la interfaz del usuario porque en la visualización de los modelos sigue apareciendo cubo en 3, entonces pon GPT-OSS. Y que alineaba cuando se cumpla el límite de ese modelo, se coloquen los colores del círculo de acuerdo a lo que corresponde.",
     "date": "2026-03-03",
-    "time": "11:21 AM"
+    "time": "01:05 PM"
   },
   {
-    "text": "Perfecto, entonces continuemos. Hay una mejora que quiero que revises, o una función que quiero que revises, y es el cálculo del tiempo ahorrado. Es que se me hace muy raro, porque actualmente llevo 498 palabras dictadas y me está diciendo que ya he ahorrado 12 minutos. Es imposible que en 498 palabras ya lleve 12 minutos ahorrados. Revisa la fórmula. Realmente, la fórmula está bien. ¿Está calculando bien el tiempo ahorrado?",
+    "text": "Seré directo y claro y honesto. Desde el punto de vista financiero, es entendible que elija otros destinos en lugar de Sudamérica. Todos los tenistas eligen torneos también en función de las garantías. Sudamérica nunca me ofreció un acuerdo lo suficientemente bueno como para considerarlo.",
     "date": "2026-03-03",
-    "time": "11:18 AM"
+    "time": "12:54 PM"
   },
   {
-    "text": "Perfecto, así quedó bien.",
+    "text": "Hola, buenos días, quería saber si todo está bien. Es que no contesta.  \n\nNecesito hacer un mandado, necesito comprar:  \n- huevos  \n- carne  \n- pasta  \n- arroz  \n- legumbres  \n- algunos detergentes para lavar ropa.",
     "date": "2026-03-03",
-    "time": "11:17 AM"
+    "time": "12:53 PM"
   },
   {
-    "text": "Listo, ahora quiero que hagas una auditoría de la función de los círculos. Dime si realmente está funcionando, que se ponga en amarillo cuando está funcionando ese modelo con esa API Key, que si no se está utilizando se ponga en blanco y cuando llega al límite se ponga en rojo. Solo quiero que hagas la auditoría y el análisis si realmente está funcionando, si se actualiza cada que hago un dictado, solo quiero eso, respóndeme si sí o no, o si toca hacer mejoras o modificaciones a la función de los círculos, solamente la función de los círculos.",
+    "text": "Hola, buenos días.",
     "date": "2026-03-03",
-    "time": "11:04 AM"
-  },
-  {
-    "text": "El siguiente arreglo. El siguiente arreglo, si te das cuenta, te coloco en la imagen dos líneas verdes horizontales, señalizándote dónde debe estar el círculo situado, porque si te das cuenta, el círculo está mucho más abajo. \n\nEntonces, para que no exista este problema, haz el círculo más grande, del mismo tamaño que el texto, para que quede realmente centrado y no se vea ese error visual que existe actualmente con los círculos. Haz los círculos del mismo tamaño que el texto y así evitamos que, si lo bajas, quede hacia abajo, o si lo subes un poquito, quede hacia arriba. \n\nEntonces, agranda un poquito el círculo para que quede del mismo tamaño y centrado con respecto a los textos.",
-    "date": "2026-03-03",
-    "time": "10:58 AM"
-  },
-  {
-    "text": "Vale, vamos a ver modificaciones. Te coloco en la imagen una señalización, una línea vertical de color amarillo, insinuando el espacio entre las visualizaciones superiores con respecto a la visualización de los modelos. Ese espacio debe ser similar e igual al del espacio que te señalo con una línea roja de color horizontal. Debe ser el mismo espacio.\n\nDos, dentro de la parte de los modelos, no está centrado el texto ni los círculos en la casilla. Si te das cuenta, hay más espacio en la parte superior que en la parte inferior, hablando solamente de la visualización de los modelos. Lo mismo sucede con los círculos: los círculos no están centrados con respecto al texto; los círculos están hacia la parte superior del inicio del texto. Debe estar centrado todo.",
-    "date": "2026-03-03",
-    "time": "10:50 AM"
-  },
-  {
-    "text": "¿Aprendiste bien lo del cuadrado que toca hacer con el fondo gris y los bordes redondeados? Eso está bien, pero no es que sea uno por cada modelo, sino que estén todos ahí abarcados dentro de un solo cuadrado. ¿Sí? \n\nTodos en el mismo cuadrado de manera horizontal, que ocupe la misma longitud de los dos cuadrados de la parte superior, de dónde están las visualizaciones. Me hago entender.\n\nY otra petición: bájale un punto al tamaño del texto de los modelos. Hazlo un poquito, solo un poquito más pequeño el texto.",
-    "date": "2026-03-03",
-    "time": "10:45 AM"
-  },
-  {
-    "text": "Gracias.",
-    "date": "2026-03-03",
-    "time": "10:44 AM"
-  },
-  {
-    "text": "Gracias.",
-    "date": "2026-03-03",
-    "time": "10:44 AM"
-  },
-  {
-    "text": "Gracias.",
-    "date": "2026-03-03",
-    "time": "10:43 AM"
-  },
-  {
-    "text": "Gracias.",
-    "date": "2026-03-03",
-    "time": "10:43 AM"
-  },
-  {
-    "text": "Gracias.",
-    "date": "2026-03-03",
-    "time": "10:43 AM"
-  },
-  {
-    "text": "Gracias.",
-    "date": "2026-03-03",
-    "time": "10:43 AM"
-  },
-  {
-    "text": "Gracias.",
-    "date": "2026-03-03",
-    "time": "10:43 AM"
-  },
-  {
-    "text": "Me quedé.",
-    "date": "2026-03-03",
-    "time": "10:43 AM"
-  },
-  {
-    "text": "Gracias.",
-    "date": "2026-03-03",
-    "time": "10:43 AM"
-  },
-  {
-    "text": "Listo, está bien. El tamaño quedó bien, los círculos están bien, pero ahora decido colocar fondo a esa parte. Igual que en las visualizaciones, que sean del mismo color, que sean cuadraditos con el mismo espacio. ¿Dime si entiendes antes de implementar?",
-    "date": "2026-03-03",
-    "time": "10:42 AM"
+    "time": "12:53 PM"
   }
 ]

@@ -221,8 +221,8 @@ class ControlPanelWindow(QWidget):
             
         self.dot_w1 = create_indicator("Whisper (L1)")
         self.dot_w2 = create_indicator("Whisper (L2)")
-        self.dot_l1 = create_indicator("Llama 70B (L1)")
-        self.dot_l2 = create_indicator("Llama 70B (L2)")
+        self.dot_l1 = create_indicator("GPT-OSS 20B (L1)")
+        self.dot_l2 = create_indicator("GPT-OSS 20B (L2)")
         
         w_key = os.environ.get("VEXTO_WHISPER_KEY", "1")
         l_key = os.environ.get("VEXTO_LLAMA_KEY", "1")
