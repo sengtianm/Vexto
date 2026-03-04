@@ -37,8 +37,8 @@ class HistoryManager:
             try:
                 with open(self.history_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
-            except (OSError, json.JSONDecodeError):
-                pass
+            except (OSError, json.JSONDecodeError) as e:
+                print(f"[Vexto] Warning: No se pudo leer el historial ({e}). Se mostrará vacío.")
         return []
 
     def clear(self) -> None:

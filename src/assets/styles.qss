@@ -291,10 +291,6 @@ QCheckBox::indicator:checked {
     background-color: transparent;
 }
 
-#MasterWidget {
-    background-color: transparent;
-}
-
 *[cssClass="MonitorIndicatorText"] {
     font-size: 13px; 
     color: #E5E4E2; 

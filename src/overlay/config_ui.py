@@ -1,8 +1,6 @@
 import os
 import sys
-import json
 from datetime import datetime
-from dotenv import load_dotenv
 from typing import List, Dict, Any, Optional
 
 from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QVBoxLayout, 
@@ -11,7 +9,7 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QVBoxLayout,
                              QSystemTrayIcon, QMenu, QGridLayout)
 from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtCore import Qt, pyqtSignal
-from src.utils import HISTORY_FILE, ENV_FILE, LOGO_ICON
+from src.utils import HISTORY_FILE, ENV_FILE, LOGO_ICON, PROJECT_ROOT
 from src.utils import ConfigKeys, EnvVars, AppState
 
 from src.services import HistoryManager
@@ -22,19 +20,18 @@ class ControlPanelWindow(QWidget):
     # Definir señal para poder agregar texto al historial desde el hilo secundario
     add_history_signal = pyqtSignal(str)
 
-    def __init__(self) -> None:
+    def __init__(self, app_settings: AppSettingsService) -> None:
         super().__init__()
         self.env_path = ENV_FILE
         # Load existing or create empty
         if not os.path.exists(self.env_path):
             with open(self.env_path, 'w') as f:
                 f.write(f"{ConfigKeys.GROQ_API_KEY}=\n{ConfigKeys.RECORD_HOTKEY}=ctrl+space\n")
-        load_dotenv(self.env_path)
         
         self.history_manager = HistoryManager()
         self.dashboard_service = DashboardMetricsService()
-        self.app_settings = AppSettingsService()
-        self.hotkey_manager = None
+        self.app_settings = app_settings
+        self.hotkey_manager: Optional[Any] = None
         
         # Connect signal
         self.add_history_signal.connect(self.on_new_dictation)
@@ -53,7 +50,6 @@ class ControlPanelWindow(QWidget):
         self.resize(560, 580)
         
         # Cargar CSS Global Refactorizado
-        from src.utils import PROJECT_ROOT
         style_path = os.path.join(PROJECT_ROOT, "src", "assets", "styles.qss")
         if os.path.exists(style_path):
             with open(style_path, "r", encoding="utf-8") as f:
@@ -124,10 +120,8 @@ class ControlPanelWindow(QWidget):
         self.monitor_layout.setSpacing(15)
         self.monitor_layout.addStretch()
         
-        def update_dot_color(lbl, target_num, current_key):
-            err = EnvVars.ERROR_VAL
-            color = "#FFBA00" if current_key == target_num else "#D32F2F" if (target_num == "1" and current_key in ["2", err]) or current_key == err else "#E5E4E2"
-            lbl.setStyleSheet(f"font-size: 24px; background: transparent; color: {color};")
+        def update_dot_color(lbl: QLabel, target_num: str, current_key: str) -> None:
+            self._update_dot_color(lbl, target_num, current_key, font_size=24)
             
         def create_indicator(text):
             h_layout = QHBoxLayout()
@@ -191,7 +185,7 @@ class ControlPanelWindow(QWidget):
         hotq_label = QLabel("Atajo de Dictado")
         hotq_label.setProperty("cssClass", "ConfigLabel")
         hotq_label.setFixedWidth(115)
-        hotq_val = self.app_settings.get(ConfigKeys.RECORD_HOTKEY)
+        hotq_val = self.app_settings.get(ConfigKeys.RECORD_HOTKEY) or "ctrl+space"
         self.hotq_display = QLabel(f"{hotq_val.upper()}")
         self.hotq_display.setProperty("cssClass", "HotkeyDisplay")
         
@@ -244,7 +238,7 @@ class ControlPanelWindow(QWidget):
         # Language Selector
         lang_layout = QHBoxLayout()
         lang_label = QLabel("Idioma")
-        lang_label.setStyleSheet("color: #E5E4E2; font-size: 14px; background: transparent; border: none; font-weight: bold;")
+        lang_label.setProperty("cssClass", "ConfigLabel")
         lang_label.setFixedWidth(115)
         self.lang_combo = QComboBox()
         self.lang_combo.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -276,7 +270,7 @@ class ControlPanelWindow(QWidget):
         self.format_checkbox.setProperty("cssClass", "ConfigCheckBox")
         self.format_checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
         
-        smart_formatting_env = self.app_settings.get(ConfigKeys.SMART_FORMATTING).lower() == "true"
+        smart_formatting_env = (self.app_settings.get(ConfigKeys.SMART_FORMATTING) or "false").lower() == "true"
         self.format_checkbox.setChecked(smart_formatting_env)
         self.format_checkbox.stateChanged.connect(self.change_formatting_state)
         
@@ -377,17 +371,25 @@ class ControlPanelWindow(QWidget):
         # Ejecutar centrado inercial
         self.center_window()
         
-    def center_window(self):
+    def _update_dot_color(self, lbl: QLabel, target_num: str, current_key: str, font_size: int = 16) -> None:
+        """Colorea los indicadores de estado de las API Keys según su uso actual."""
+        err = EnvVars.ERROR_VAL
+        color = "#FFBA00" if current_key == target_num else "#D32F2F" if (target_num == "1" and current_key in ["2", err]) or current_key == err else "#E5E4E2"
+        lbl.setStyleSheet(f"font-size: {font_size}px; background: transparent; color: {color};")
+
+    def center_window(self) -> None:
         # Mueve la interfaz al centro geométrico del monitor primario
         try:
-            screen = QApplication.primaryScreen().availableGeometry().center()
-            frame_geometry = self.frameGeometry()
-            frame_geometry.moveCenter(screen)
-            self.move(frame_geometry.topLeft())
-        except:
+            primary = QApplication.primaryScreen()
+            if primary:
+                screen = primary.availableGeometry().center()
+                frame_geometry = self.frameGeometry()
+                frame_geometry.moveCenter(screen)
+                self.move(frame_geometry.topLeft())
+        except Exception:
             pass
 
-    def on_new_dictation(self, text):
+    def on_new_dictation(self, text: str) -> None:
         """Called automatically via signal when a new dictation finishes"""
         if text.strip():
             self.history_manager.add_entry(text)
@@ -406,23 +408,21 @@ class ControlPanelWindow(QWidget):
         w_key = os.environ.get(EnvVars.WHISPER_KEY, "1")
         l_key = os.environ.get(EnvVars.LLAMA_KEY, "1")
         
-        def update_dot_color(lbl, target_num, current_key):
-            err = EnvVars.ERROR_VAL
-            color = "#FFBA00" if current_key == target_num else "#D32F2F" if (target_num == "1" and current_key in ["2", err]) or current_key == err else "#E5E4E2"
-            lbl.setStyleSheet(f"font-size: 16px; background: transparent; color: {color};")
+        def update_dot_color(lbl: QLabel, target_num: str, current_key: str) -> None:
+            self._update_dot_color(lbl, target_num, current_key, font_size=16)
             
         update_dot_color(self.dot_w1, "1", w_key)
         update_dot_color(self.dot_w2, "2", w_key)
         update_dot_color(self.dot_l1, "1", l_key)
         update_dot_color(self.dot_l2, "2", l_key)
-        stats = self.dashboard_service
-        self.lbl_dicts.setText(f"{stats.total_dictations:,}")
 
-    def refresh_history_ui(self):
+    def refresh_history_ui(self) -> None:
         """Clears and rebuilds the history list based on local file"""
         # Clear current layout
         while self.history_layout.count():
             item = self.history_layout.takeAt(0)
+            if item is None:
+                break
             widget = item.widget()
             if widget:
                 widget.deleteLater()
@@ -467,7 +467,7 @@ class ControlPanelWindow(QWidget):
             # Add Item
             self._add_history_item_widget(entry)
 
-    def _add_history_item_widget(self, entry):
+    def _add_history_item_widget(self, entry: Dict[str, Any]) -> None:
         item_frame = QFrame()
         item_frame.setProperty("cssClass", "HistoryItemFrame")
         item_layout = QVBoxLayout(item_frame)
@@ -510,7 +510,7 @@ class ControlPanelWindow(QWidget):
         
         self.history_layout.addWidget(item_frame)
 
-    def toggle_config_section(self):
+    def toggle_config_section(self) -> None:
         is_visible = self.config_frame.isVisible()
         self.config_frame.setVisible(not is_visible)
         if is_visible:
@@ -518,7 +518,7 @@ class ControlPanelWindow(QWidget):
         else:
             self.config_title_btn.setText("▼ Configuración General")
 
-    def clear_history(self):
+    def clear_history(self) -> None:
         reply = QMessageBox.question(self, "Limpiar Historial", 
                                      "¿Estás seguro de que deseas borrar todos tus dictados guardados? Esta acción no se puede deshacer y tu contador global regresará a cero.",
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
@@ -536,7 +536,7 @@ class ControlPanelWindow(QWidget):
 
 
 
-    def change_hotkey(self):
+    def change_hotkey(self) -> None:
         current = self.app_settings.get(ConfigKeys.RECORD_HOTKEY)
         text, ok = QInputDialog.getText(self, 'Cambiar Atajo', 
             'Ingresa el nuevo atajo:\n(Ejemplos: ctrl+space, alt+x, ctrl+shift+a)',
@@ -553,7 +553,7 @@ class ControlPanelWindow(QWidget):
                 print(f"Reiniciando backend con nuevo atajo: {new_hotkey}")
                 self.start_backend()
 
-    def change_microphone(self, index):
+    def change_microphone(self, index: int) -> None:
         mic_id_data = self.mic_combo.itemData(index)
         
         if mic_id_data == -1: 
@@ -568,7 +568,7 @@ class ControlPanelWindow(QWidget):
         if self.hotkey_manager:
             self.start_backend()
 
-    def change_language(self, index):
+    def change_language(self, index: int) -> None:
         lang_data = self.lang_combo.itemData(index)
         
         if lang_data == self.current_lang:
@@ -588,7 +588,7 @@ class ControlPanelWindow(QWidget):
             
         self.lang_combo.blockSignals(False)
 
-    def change_formatting_state(self, state):
+    def change_formatting_state(self, state: int) -> None:
         is_checked = bool(state == Qt.CheckState.Checked.value or state == 2)
         val_str = "True" if is_checked else "False"
         self.app_settings.set(ConfigKeys.SMART_FORMATTING, val_str)
@@ -596,7 +596,7 @@ class ControlPanelWindow(QWidget):
         # Llama 3 lee os.getenv("SMART_FORMATTING") en cada dictado en provider.py,
         # por lo que no es estrictamente necesario reiniciar el hilo de captura de audio.
 
-    def change_autostart_state(self, state):
+    def change_autostart_state(self, state: int) -> None:
         import src.utils.autostart as autostart
         is_checked = bool(state == Qt.CheckState.Checked.value or state == 2)
         val_str = "True" if is_checked else "False"
@@ -611,7 +611,7 @@ class ControlPanelWindow(QWidget):
         self.app_settings.set(ConfigKeys.AUTOSTART, val_str)
         print(f"Arrancar con Windows: {val_str}")
 
-    def start_backend(self):
+    def start_backend(self) -> None:
         from main import start_background_services
         # Detener primero si ya está corriendo
         if self.hotkey_manager:
@@ -622,7 +622,7 @@ class ControlPanelWindow(QWidget):
         # Importante: inyectamos la llamada `add_history_signal.emit` a los servicios en background
         self.hotkey_manager = start_background_services(history_callback=self.add_history_signal.emit)
 
-    def setup_tray(self):
+    def setup_tray(self) -> None:
         # Usamos el logo oficial para el System Tray
         icon = QIcon(LOGO_ICON)
         self.tray_icon = QSystemTrayIcon(icon, self)
@@ -646,16 +646,16 @@ class ControlPanelWindow(QWidget):
         self.tray_icon.activated.connect(self.tray_icon_activated)
         self.tray_icon.show()
         
-    def tray_icon_activated(self, reason):
+    def tray_icon_activated(self, reason: Any) -> None:
         if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
             self.show_window()
             
-    def show_window(self):
+    def show_window(self) -> None:
         self.show()
         self.activateWindow()
         self.raise_()
         
-    def quit_app(self):
+    def quit_app(self) -> None:
         print("Cerrando Vexto por completo...")
         self.tray_icon.hide()
         
@@ -671,7 +671,7 @@ class ControlPanelWindow(QWidget):
             
         QApplication.quit()
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: Any) -> None:
         # En lugar de cerrar la app o los servicios, solo ocultamos la ventana visual
         self.hide()
         event.ignore()
@@ -690,7 +690,14 @@ def main():
     # Set Global App Icon (Taskbar)
     app.setWindowIcon(QIcon(LOGO_ICON))
     
-    window = ControlPanelWindow()
+    # Cargar variables de entorno UNA sola vez aquí (punto de entrada)
+    from dotenv import load_dotenv
+    load_dotenv()
+    
+    # Instancia maestra compartida de configuración
+    shared_settings = AppSettingsService()
+    
+    window = ControlPanelWindow(shared_settings)
     
     # Mostrar la ventana SOLO si el usuario no tiene la API Key
     if not (os.getenv("GROQ_API_KEY") and os.getenv("GROQ_API_KEY") != "tu_clave_aqui"):

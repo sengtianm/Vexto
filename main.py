@@ -2,7 +2,7 @@ import os
 import sys
 import concurrent.futures
 from dotenv import load_dotenv
-from typing import Optional, Callable, Any
+from typing import Optional, Callable
 from src.utils.constants import AppState, ConfigKeys
 
 from PyQt6.QtWidgets import QApplication
@@ -34,7 +34,7 @@ def start_background_services(history_callback: Optional[Callable[[str], None]] 
     load_dotenv()
     
     app_settings = AppSettingsService()
-    hotkey = app_settings.get(ConfigKeys.RECORD_HOTKEY)
+    hotkey = app_settings.get(ConfigKeys.RECORD_HOTKEY) or "ctrl+space"
     
     # Manejo del índice de micrófono opcional
     device_index_str = app_settings.get(ConfigKeys.RECORD_DEVICE_INDEX)
@@ -42,7 +42,7 @@ def start_background_services(history_callback: Optional[Callable[[str], None]] 
     
     # Inicializar componentes
     recorder = AudioRecorder(device_index=device_index)
-    pipeline = AIPipeline()
+    pipeline = AIPipeline(app_settings)
     injector = TextInjector()
     
     print(f"\n[Vexto] Background Services Iniciados.")
@@ -68,7 +68,7 @@ def start_background_services(history_callback: Optional[Callable[[str], None]] 
                     transcription = pipeline.transcribe_audio(wav_path)
                     
                     if transcription:
-                        is_formatting_on = app_settings.get(ConfigKeys.SMART_FORMATTING).lower() == "true"
+                        is_formatting_on = (app_settings.get(ConfigKeys.SMART_FORMATTING) or "false").lower() == "true"
                         if is_formatting_on:
                             final_text = pipeline.rewrite_text(transcription)
                         else:

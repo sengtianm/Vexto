@@ -192,7 +192,7 @@ class VextoOverlay(QWidget):
             -span_angle * 16
         )
 
-    def _draw_error(self, painter):
+    def _draw_error(self, painter: QPainter) -> None:
         """Cruz visible minimalista de color rojo alerta"""
         center_x = self.width() / 2
         center_y = self.height() / 2

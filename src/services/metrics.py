@@ -27,8 +27,8 @@ class DashboardMetricsService:
                     self.total_dictations = data.get(MetricsKeys.TOTAL_DICTATIONS, 0)
                     self.daily_streak = data.get(MetricsKeys.DAILY_STREAK, 0)
                     self.last_dictation_date = data.get(MetricsKeys.LAST_DICTATION_DATE, "")
-            except (OSError, json.JSONDecodeError):
-                pass
+            except (OSError, json.JSONDecodeError) as e:
+                print(f"[Vexto] Warning: No se pudieron cargar las estadísticas ({e}). Se usarán valores por defecto.")
 
     def save_stats(self) -> None:
         """Persiste al disco de forma atómica y segura."""

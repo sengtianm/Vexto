@@ -1,8 +1,0 @@
-
-[2026-03-03 16:10:34.946341] Iniciando process_audio. wav_path=C:\Users\sebas\AppData\Local\Temp\tmpwbb5l67w.wav
-- WAV exists. Llamando a ASR...
-- Transcripción: 'Listo, pues mientras tanto continuamos con el plan de implementación de mejora de auditoría de arquitectónica y deuda técnica. Mi pregunta es, ¿ya hiciste todo el nivel rojo? Porque ya estábamos en el punto 1, o sea que ya hiciste el punto 2 y el punto 3 del nivel rojo. Solo confírmame y no implementes nada.'
-- SMART FORMATTING ON. Wait LLM...
-- LLM Output: ''
-- FALLO LLM: Empty.
-- RESULTADO FINAL: success=False

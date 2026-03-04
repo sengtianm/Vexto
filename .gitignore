@@ -1,4 +1,27 @@
-venv/
-.env
+# === Python ===
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+
+# === Entorno Virtual ===
+venv/
+
+# === Secretos y API Keys ===
+.env
+
+# === Datos de usuario en tiempo de ejecución ===
+historial.json
+user_stats.json
+config.user.json
+
+# === Cachés de herramientas de análisis ===
+.mypy_cache/
+
+# === Logs y reportes temporales ===
+*.log
+vulture_*.txt
+mypy_*.txt
+
+# === IDE ===
+.vscode/

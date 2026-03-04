@@ -1,8 +1,6 @@
-import threading
 import time
 import keyboard as kb # System-wide keyboard hook (requires admin or runs fine on user space mostly, much more reliable than pynput)
 from typing import Callable, Optional, List, Any
-from src.utils import ConfigKeys
 
 class HotkeyManager:
     """Manages the global hotkey for push-to-talk using the 'keyboard' module for flawless Windows support."""
